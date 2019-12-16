@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">AVS &amp; WWA</string>
+
+    //main
+    <string name="exit_program_hint">再按一次退出程序</string>
+    <string name="no_conn_wifi">您还没有连接任何网络，请连接AVS设备的网络。</string>
+    <string name="go">前往</string>
+    <string name="no_open_location">APP想要检查您是否连接上了正确的网络，为此请您打开地理位置信息。</string>
+    <string name="wifi_no_match">您连接的网络与AVS设备网络不匹配，请连至正确的网络。</string>
+    <string name="setting_wifi_to_avs">为AVS配置网络</string>
+
+    //menu
+    <string name="avs_setting">AVS 设置</string>
+    <string name="wwa_setting">WWA 设置</string>
+    <string name="share_avs">rb_main_avs</string>
+    <string name="share_wwa">rb_main_wwa</string>
+
+    //avs
+    <string name="setting_avs_wifi_connection">设置AVS网络连接</string>
+    <string name="avs_hint">你需要先为AVS配置网络。 \n然后刷新此列表。</string>
+    <string name="error">错误</string>
+    <string name="author_success">认证成功</string>
+    <string name="close">关闭</string>
+</resources>

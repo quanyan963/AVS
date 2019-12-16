@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/dl_main_right"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".main.MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include
+            android:id="@+id/i_main_toolbar"
+            layout="@layout/toolbar"/>
+        <FrameLayout
+            android:id="@+id/fl_main_fragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/rg_main_bottom"
+            android:layout_below="@+id/i_main_toolbar">
+        </FrameLayout>
+        <RadioGroup
+            android:id="@+id/rg_main_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true"
+            android:background="@color/gray"
+            app:layout_constraintBottom_toBottomOf="parent">
+            <RadioButton
+                android:id="@+id/rb_main_avs"
+                style="@style/nav_rb"
+                android:transitionName="@string/share_avs"
+                android:paddingTop="@dimen/dp_6_y"
+                android:drawableTop="@drawable/avs"/>
+            <RadioButton
+                android:id="@+id/rb_main_wwa"
+                style="@style/nav_rb"
+                android:transitionName="@string/share_wwa"
+                android:paddingTop="@dimen/dp_6_y"
+                android:drawableTop="@drawable/wwa"/>
+        </RadioGroup>
+    </RelativeLayout>
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:fitsSystemWindows="true"
+        app:menu="@menu/nav_menu"
+        android:background="@color/colorPrimary">
+
+    </com.google.android.material.navigation.NavigationView>
+
+</androidx.drawerlayout.widget.DrawerLayout>

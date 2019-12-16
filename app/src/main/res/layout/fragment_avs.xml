@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+    <TextView
+        android:id="@+id/tv_avs_wifi"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        style="@style/main_tv"
+        android:layout_marginTop="@dimen/dp_16_y"
+        android:layout_marginBottom="@dimen/dp_16_y"
+        android:text="@string/setting_avs_wifi_connection"
+        android:padding="@dimen/dp_6_y"
+        android:background="@drawable/ripple_item_layout_effect"/>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/sfl_acs_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/tv_avs_wifi">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rlv_avs_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+
+    <TextView
+        android:id="@+id/tv_avs_hint"
+        android:layout_centerInParent="true"
+        style="@style/main_tv"
+        android:gravity="center"
+        android:text="@string/avs_hint"/>
+</RelativeLayout>

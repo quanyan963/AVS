@@ -1,0 +1,46 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="ToolbarPopupTheme" parent="@style/ThemeOverlay.AppCompat.Dark">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:colorBackground">@color/colorPrimary</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="overlapAnchor">false</item>
+    </style>
+
+    <style name="Toolbar.TitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">@dimen/dp_16_x</item>
+    </style>
+
+    <style name="AppTheme.ActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="actionMenuTextColor">@color/black</item>
+    </style>
+
+    <style name="nav_rb">
+        <item name="android:button">@null</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:background">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">@dimen/dp_2_y</item>
+        <item name="android:drawablePadding">-16dp</item>
+        <item name="android:textSize">@dimen/dp_16_x</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="main_tv">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/dp_16_x</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+</resources>

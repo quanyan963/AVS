@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+    <RadioGroup
+        android:id="@+id/rg_start_check"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/dp_32_y"
+        android:layout_marginBottom="@dimen/dp_32_y"
+        android:gravity="center">
+        <RadioButton
+            style="@style/nav_rb"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"/>
+        <RadioButton
+            android:id="@+id/rb_main_avs"
+            style="@style/nav_rb"
+            android:layout_weight="0"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:drawablePadding="@dimen/dp_22_x"
+            android:drawableLeft="@drawable/avs"
+            android:transitionName="@string/share_avs"
+            android:text="@string/avs_setting"/>
+        <RadioButton
+            style="@style/nav_rb"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"/>
+        <RadioButton
+            android:id="@+id/rb_main_wwa"
+            style="@style/nav_rb"
+            android:layout_weight="0"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:drawableLeft="@drawable/wwa"
+            android:transitionName="@string/share_wwa"
+            android:drawablePadding="@dimen/dp_16_x"
+            android:text="@string/wwa_setting"/>
+        <RadioButton
+            style="@style/nav_rb"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"/>
+    </RadioGroup>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
