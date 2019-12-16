@@ -26,6 +26,6 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void init() {
-
+        presenter.checkPermission(getActivity());
     }
 }

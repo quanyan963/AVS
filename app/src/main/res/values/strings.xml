@@ -8,6 +8,8 @@
     <string name="no_open_location">App wants to check that you have connect the right network,please open location.</string>
     <string name="wifi_no_match">Wifi does not match, please connect to AVS`s WIFI network.</string>
     <string name="setting_wifi_to_avs">Setting Wifi to AVS</string>
+    <string name="avs">AVS</string>
+    <string name="wwa">WWA</string>
 
     //menu
     <string name="avs_setting">AVS Setting</string>
@@ -21,4 +23,5 @@
     <string name="error">ERROR</string>
     <string name="author_success">Author Successful</string>
     <string name="close">Close</string>
+
 </resources>

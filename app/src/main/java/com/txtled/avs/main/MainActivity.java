@@ -59,6 +59,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     public void init() {
         Intent intent = getIntent();
         int checkId = intent.getIntExtra(RB_ID, R.id.rb_main_avs);
+        initToolbar();
         mCurrentFragment = new AVSFragment();
         rgMainBottom.setOnCheckedChangeListener(this);
         rgMainBottom.check(checkId);
@@ -122,10 +123,26 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
             mAVSFragment = new AVSFragment();
         }
         switchContent(mCurrentFragment, mAVSFragment);
+        setTitle(R.string.avs);
+        //removeNavigationIcon();
         rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.avs, R.color.colorPrimaryDark, this), null, null);
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.wwa, R.color.black, this), null, null);
+    }
+
+    @Override
+    public void toWWA() {
+        if (mWWAFragment == null){
+            mWWAFragment = new WWAFragment();
+        }
+        switchContent(mCurrentFragment, mWWAFragment);
+        setTitle(R.string.wwa);
+        //setNavigationIcon(false);
+        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
+                R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
+        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
+                R.drawable.avs, R.color.black, this), null, null);
     }
 
     private void switchContent(Fragment from, Fragment to) {
@@ -142,18 +159,6 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
                 transaction.hide(from).show(to).commit();
             }
         }
-    }
-
-    @Override
-    public void toWWA() {
-        if (mWWAFragment == null){
-            mWWAFragment = new WWAFragment();
-        }
-        switchContent(mCurrentFragment, mWWAFragment);
-        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
-        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                R.drawable.avs, R.color.black, this), null, null);
     }
 
     public void getWifiSSID(){

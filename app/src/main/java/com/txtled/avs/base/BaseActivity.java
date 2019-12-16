@@ -60,26 +60,26 @@ public abstract class BaseActivity extends AppCompatActivity {
 
 
     public void initToolbar() {
-//        toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        if (toolbar != null) {
-//            tvTitle = (TextView) findViewById(R.id.tv_title);
-//            ivRight = (ImageView) findViewById(R.id.iv_right);
-//            setSupportActionBar(toolbar);
-//            setTitle("");
-//
-//            toolbar.setOnMenuItemClickListener(onMenuItemClick);
-//            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    if (isBack){
-//                        onBackPressed();
-//                    }else {
-//                        onLeftClick();
-//                    }
-//
-//                }
-//            });
-//        }
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            tvTitle = (TextView) findViewById(R.id.tv_title);
+            ivRight = (ImageView) findViewById(R.id.iv_right);
+            setSupportActionBar(toolbar);
+            setTitle("");
+
+            toolbar.setOnMenuItemClickListener(onMenuItemClick);
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (isBack){
+                        onBackPressed();
+                    }else {
+                        onLeftClick();
+                    }
+
+                }
+            });
+        }
     }
 
     public void onLeftClick() {
@@ -87,12 +87,16 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public void setNavigationIcon(boolean isBack) {
         this.isBack = isBack;
-//        if (isBack) {
-//            toolbar.setNavigationIcon(R.mipmap.back);
-//        } else {
-//            toolbar.setNavigationIcon(R.mipmap.schedule);
-//        }
+        if (isBack) {
+            //toolbar.setNavigationIcon(R.mipmap.back);
+        } else {
+            toolbar.setNavigationIcon(R.drawable.ble);
+        }
 
+    }
+
+    public void removeNavigationIcon(){
+        toolbar.setNavigationIcon(null);
     }
 
     public void setRightImg(boolean isShow, @Nullable Drawable drawable, View.OnClickListener listener) {

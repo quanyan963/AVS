@@ -7,7 +7,8 @@ import android.Manifest;
  */
 public class Constants {
     public static String[] permissions = new String[]{
-            Manifest.permission.ACCESS_FINE_LOCATION };
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION };
     public static String WIFI_NAME = "amlogic";
     public static int REQUEST_CODE_LOCATION_SETTINGS = 100;
     public static int REQUEST_CODE_WIFI_SETTINGS = 200;

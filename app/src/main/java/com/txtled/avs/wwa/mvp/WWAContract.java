@@ -1,5 +1,9 @@
 package com.txtled.avs.wwa.mvp;
 
+import android.app.Activity;
+
+import androidx.fragment.app.FragmentActivity;
+
 import com.txtled.avs.base.BasePresenter;
 import com.txtled.avs.base.BaseView;
 
@@ -12,5 +16,6 @@ public interface WWAContract {
     }
     interface Presenter extends BasePresenter<View>{
 
+        void checkPermission(Activity activity);
     }
 }
