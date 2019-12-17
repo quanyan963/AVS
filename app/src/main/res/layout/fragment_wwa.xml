@@ -1,7 +1,140 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:orientation="vertical">
 
-</LinearLayout>
+    <RelativeLayout
+        android:id="@+id/rl_setting_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/dp_16_x"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/ap_ssid_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:text="@string/ssid_title"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"/>
+
+        <TextView
+            android:id="@+id/ap_ssid_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dp_4_x"
+            android:layout_marginLeft="@dimen/dp_4_x"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/ap_ssid_label"/>
+
+        <TextView
+            android:id="@+id/ap_bssid_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8_x"
+            android:singleLine="true"
+            android:text="@string/bssid_title"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/ap_ssid_label"/>
+
+        <TextView
+            android:id="@+id/ap_bssid_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dp_4_x"
+            android:layout_marginLeft="@dimen/dp_4_x"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_toRightOf="@+id/ap_bssid_label"
+            android:layout_above="@+id/ap_password_layout"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/ap_password_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8_x"
+            android:hint="@string/password_title"
+            android:layout_below="@+id/ap_bssid_label"
+            app:passwordToggleEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/ap_password_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/device_count_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8_x"
+            android:hint="@string/device_count_title"
+            android:layout_below="@+id/ap_password_layout">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/device_count_edit"
+                android:layout_width="@dimen/dp_80_x"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <RadioGroup
+            android:id="@+id/package_mode_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dp_8_x"
+            android:orientation="horizontal"
+            android:layout_below="@+id/device_count_layout">
+
+            <RadioButton
+                android:id="@+id/package_broadcast"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/package_broadcast" />
+
+            <RadioButton
+                android:id="@+id/package_multicast"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dp_16_x"
+                android:layout_marginLeft="@dimen/dp_16_x"
+                android:text="@string/package_multicast" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:textColor="@android:color/holo_red_dark"
+            android:layout_below="@+id/package_mode_group"
+            app:layout_goneMarginStart="@dimen/dp_4_x" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/confirm_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/confirm"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+    <TextView
+        android:id="@+id/tv_register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/start_conn_wwa"
+        android:padding="@dimen/dp_6_x"
+        android:background="@drawable/ripple_item_layout_effect"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

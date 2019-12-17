@@ -76,6 +76,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         getActivityComponent().inject(this);
     }
 
+    //打开wifi设置界面
     @Override
     public void openWifi() {
         showSnackBar(rgMainBottom, R.string.no_conn_wifi, R.string.go, new View.OnClickListener() {
@@ -206,12 +207,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         if (snackbar.isShown()){
             hideSnackBar();
         }else {
-            rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                    R.drawable.avs, R.color.black, this), null, null);
-            rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                    R.drawable.wwa, R.color.black, this), null, null);
+            super.onBackPressed();
         }
-
-        super.onBackPressed();
     }
 }

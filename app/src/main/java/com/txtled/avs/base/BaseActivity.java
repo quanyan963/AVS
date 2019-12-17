@@ -164,7 +164,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void showSnackBar(View view, int str) {
         if (snackbar == null) {
             snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE);
-            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.gray));
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.ripple));
         }
         snackbar.show();
     }
@@ -172,7 +172,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void showSnackBar(View view, String str) {
         if (snackbar == null) {
             snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE);
-            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.gray));
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.ripple));
         }
         snackbar.show();
     }
@@ -180,7 +180,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void showSnackBar(View view, int str, int btnStr, View.OnClickListener listener) {
         if (snackbar == null) {
             snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE).setAction(btnStr,listener);
-            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.gray));
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.ripple));
         }
         snackbar.show();
     }
