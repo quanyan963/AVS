@@ -4,10 +4,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -46,8 +44,6 @@ import java.util.List;
 
 import butterknife.BindView;
 
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 
 /**
@@ -149,10 +145,6 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 //                .show();
 //    }
 
-    private boolean isSDKAtLeastP() {
-        return Build.VERSION.SDK_INT >= 28;
-    }
-
     @Override
     public void registerBroadcastReceiver() {
         presenter.registerBroadcast();
@@ -175,7 +167,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void register() {
-        if (isSDKAtLeastP()) {
+        if (presenter.isSDKAtLeastP()) {
             presenter.checkPermission(getActivity());
         } else {
             registerBroadcastReceiver();
@@ -212,7 +204,8 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
         mConfirmBtn.setEnabled(true);
         mMessageTV.setText("");
-        if (((MainActivity)getActivity()).snackbar.isShown()){
+        if (((MainActivity)getActivity()).snackbar != null &&
+                ((MainActivity)getActivity()).snackbar.isShown()){
             ((MainActivity) getActivity()).hideSnackBar();
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

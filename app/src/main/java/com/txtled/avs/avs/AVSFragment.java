@@ -1,11 +1,15 @@
 package com.txtled.avs.avs;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,12 +22,16 @@ import com.txtled.avs.avs.mvp.AVSPresenter;
 import com.txtled.avs.base.MvpBaseFragment;
 import com.txtled.avs.bean.DeviceHostInfo;
 import com.txtled.avs.main.MainActivity;
+import com.txtled.avs.web.WebViewActivity;
 
 import java.util.ArrayList;
 
 import butterknife.BindView;
 
+import static com.txtled.avs.utils.Constants.BIND_URL;
 import static com.txtled.avs.utils.Constants.BUNDLE_KEY_EXCEPTION;
+import static com.txtled.avs.utils.Constants.REQUEST_CODE_INTERNET_SETTINGS;
+import static com.txtled.avs.utils.Constants.WEB_URL;
 
 /**
  * Created by Mr.Quan on 2019/12/10.
@@ -39,6 +47,16 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     TextView tvAvsHint;
     @BindView(R.id.sfl_acs_refresh)
     SwipeRefreshLayout sflAcsRefresh;
+    @BindView(R.id.tv_avs_bind)
+    TextView tvAvsBind;
+    @BindView(R.id.pb_avs_loading)
+    ProgressBar pbAvsLoading;
+    @BindView(R.id.tv_avs_code)
+    TextView tvAvsCode;
+    @BindView(R.id.rl_avs_bind)
+    RelativeLayout rlAvsBind;
+    @BindView(R.id.tv_avs_code_hint)
+    TextView tvAvsCodeHint;
     private AVSAdapter adapter;
 
     @Override
@@ -54,9 +72,11 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     @Override
     public void init() {
         //开始NSD扫描
-        presenter.initAmazon(getActivity(),getContext());
-        tvAvsHint.setVisibility(View.GONE);
+        presenter.initAmazon(getActivity(), getContext());
+        rlAvsBind.setVisibility(View.GONE);
+        pbAvsLoading.setVisibility(View.GONE);
         tvAvsWifi.setOnClickListener(this);
+        tvAvsBind.setOnClickListener(this);
 
         rlvAvsList.setHasFixedSize(true);
         rlvAvsList.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -73,12 +93,32 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
                 //AVS配网
                 ((MainActivity) getActivity()).getWifiSSID();
                 break;
+            case R.id.tv_avs_bind:
+//                Uri uri = Uri.parse(BIND_URL);
+//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                startActivity(intent);
+//                bindSuccess();
+
+                Intent intent = new Intent(getActivity(), WebViewActivity.class);
+                intent.putExtra(WEB_URL, BIND_URL);
+                startActivityForResult(intent, REQUEST_CODE_INTERNET_SETTINGS);
+
+                break;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_INTERNET_SETTINGS) {
+            bindSuccess();
         }
     }
 
     /****************AMZ LOGIN FUNCTION************/
     @Override
     public void showAlertDialog(Exception exception) {
+        pbAvsLoading.setVisibility(View.GONE);
         exception.printStackTrace();
         MainActivity.ErrorDialogFragment dialogFragment = new MainActivity.ErrorDialogFragment();
         Bundle args = new Bundle();
@@ -90,10 +130,11 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void setAdapter(int count) {
-        if (count != 0){
+        if (count != 0) {
             tvAvsHint.setVisibility(View.GONE);
             rlvAvsList.setAdapter(adapter);
-        }else {
+            presenter.startSocket();
+        } else {
             tvAvsHint.setVisibility(View.VISIBLE);
         }
 
@@ -105,33 +146,39 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         rlvAvsList.setAdapter(adapter);
     }
 
+//    @Override
+//    public void showSuccess() {
+//        ((MainActivity) getActivity()).showSnackBar(rlvAvsList, R.string.author_success
+//                , R.string.close, v -> ((MainActivity) getActivity()).hideSnackBar());
+//    }
+
     @Override
-    public void showSuccess() {
-        ((MainActivity)getActivity()).showSnackBar(rlvAvsList, R.string.author_success
-                , R.string.close, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((MainActivity)getActivity()).hideSnackBar();
-            }
+    public void bindDevice(String mCode) {
+        getActivity().runOnUiThread(() -> {
+            rlAvsBind.setVisibility(View.VISIBLE);
+            tvAvsCode.setText(mCode);
+            pbAvsLoading.setVisibility(View.GONE);
+            sflAcsRefresh.setVisibility(View.GONE);
         });
+    }
+
+    public void bindSuccess() {
+        tvAvsCode.setVisibility(View.GONE);
+        tvAvsBind.setVisibility(View.GONE);
+        tvAvsCodeHint.setText(R.string.avs_success);
     }
 
     @Override
     public void onAVSClick(int position) {
         presenter.onItemClick(position);
+        pbAvsLoading.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onRefresh() {
         presenter.refresh(AVSFragment.this);
-        sflAcsRefresh.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                sflAcsRefresh.setRefreshing(false);
-            }
-        },2000);
+        sflAcsRefresh.postDelayed(() -> sflAcsRefresh.setRefreshing(false), 2100);
     }
-
 
 
     @Override
@@ -143,5 +190,11 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     public void onResume() {
         super.onResume();
         presenter.resume();
+    }
+
+    @Override
+    public void onDestroy() {
+        presenter.destroy();
+        super.onDestroy();
     }
 }

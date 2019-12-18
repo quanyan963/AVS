@@ -34,5 +34,41 @@
         android:layout_centerInParent="true"
         style="@style/main_tv"
         android:gravity="center"
+        android:layout_margin="@dimen/dp_16_x"
         android:text="@string/avs_hint"/>
+    <RelativeLayout
+        android:id="@+id/rl_avs_bind"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/tv_avs_code"
+            style="@style/main_tv"
+            android:textIsSelectable="true"
+            android:layout_centerHorizontal="true"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/dp_8_x" />
+        <TextView
+            android:id="@+id/tv_avs_code_hint"
+            style="@style/main_tv"
+            android:text="@string/remember_and_copy"
+            android:layout_marginBottom="@dimen/dp_8_x"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/tv_avs_code"/>
+        <TextView
+            android:id="@+id/tv_avs_bind"
+            style="@style/main_tv"
+            android:layout_centerHorizontal="true"
+            android:text="@string/bind_device"
+            android:padding="@dimen/dp_6_y"
+            android:layout_below="@+id/tv_avs_code_hint"
+            android:background="@drawable/ripple_item_layout_effect"/>
+    </RelativeLayout>
+    <ProgressBar
+        android:id="@+id/pb_avs_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
 </RelativeLayout>

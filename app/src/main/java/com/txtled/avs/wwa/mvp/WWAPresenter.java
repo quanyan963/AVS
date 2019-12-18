@@ -78,7 +78,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         }
     }
 
-    private boolean isSDKAtLeastP() {
+    public boolean isSDKAtLeastP() {
         return Build.VERSION.SDK_INT >= 28;
     }
 

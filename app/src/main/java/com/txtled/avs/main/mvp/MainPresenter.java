@@ -71,7 +71,7 @@ public class MainPresenter extends RxPresenter<MainContract.View> implements Mai
 
     @Override
     public void switchFragment(int i) {
-        switch (i){
+        switch (i) {
             case R.id.rb_main_avs:
                 view.toAVS();
                 break;

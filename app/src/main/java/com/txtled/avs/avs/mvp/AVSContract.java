@@ -14,22 +14,28 @@ import java.util.ArrayList;
  * Created by Mr.Quan on 2019/12/10.
  */
 public interface AVSContract {
-    interface View extends BaseView{
+    interface View extends BaseView {
         void showAlertDialog(Exception exception);
 
         void setAdapter(int count);
 
         void initAdapter(ArrayList<DeviceHostInfo> infos);
 
-        void showSuccess();
+        void bindDevice(String mCode);
     }
-    interface Presenter extends BasePresenter<View>{
+
+    interface Presenter extends BasePresenter<View> {
 
         void refresh(OnSearchListener listener);
+
         void initAmazon(Activity activity, Context context);
 
         void onItemClick(int position);
 
         void resume();
+
+        void startSocket();
+
+        void destroy();
     }
 }

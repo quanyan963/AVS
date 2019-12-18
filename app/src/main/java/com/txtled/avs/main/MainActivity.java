@@ -12,7 +12,6 @@ import android.widget.RadioGroup;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -30,10 +29,12 @@ import com.txtled.avs.wwa.WWAFragment;
 
 import butterknife.BindView;
 
+import static com.txtled.avs.utils.Constants.AVS_WIFI_URL;
 import static com.txtled.avs.utils.Constants.BUNDLE_KEY_EXCEPTION;
 import static com.txtled.avs.utils.Constants.RB_ID;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_LOCATION_SETTINGS;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
+import static com.txtled.avs.utils.Constants.WEB_URL;
 
 public class MainActivity extends MvpBaseActivity<MainPresenter> implements MainContract.View
         , RadioGroup.OnCheckedChangeListener {
@@ -63,7 +64,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         mCurrentFragment = new AVSFragment();
         rgMainBottom.setOnCheckedChangeListener(this);
         rgMainBottom.check(checkId);
-        //presenter.getWifiSSid(this);
+
     }
 
     @Override
@@ -103,7 +104,9 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
 
     @Override
     public void toWebView() {
-        startActivity(new Intent(this, WebViewActivity.class));
+        Intent intent = new Intent(this, WebViewActivity.class);
+        intent.putExtra(WEB_URL,AVS_WIFI_URL);
+        startActivity(intent);
     }
 
     @Override

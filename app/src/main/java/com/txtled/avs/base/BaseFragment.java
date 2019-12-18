@@ -30,7 +30,6 @@ public abstract class BaseFragment extends Fragment {
     public abstract void init();
 
 
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,

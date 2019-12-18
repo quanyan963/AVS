@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.txtled.avs.R;
 import com.txtled.avs.bean.DeviceHostInfo;
-import com.txtled.avs.mDNS.Mdnser;
 
 import java.util.ArrayList;
 
@@ -38,15 +37,15 @@ public class AVSAdapter extends RecyclerView.Adapter<AVSAdapter.AVSViewHolder> {
     @NonNull
     @Override
     public AVSViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_avs, parent,false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_avs, parent, false);
         return new AVSViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull AVSViewHolder holder, final int position) {
-        if (mAddress != null){
-            holder.tvAvsItem.setText(mAddress.get(position).getHostname()+";\n"
-                    +mAddress.get(position).getHostip()+";\n"+mAddress.get(position).getHostmac());
+        if (mAddress != null) {
+            holder.tvAvsItem.setText(mAddress.get(position).getHostname() + ";\n"
+                    + mAddress.get(position).getHostip() + ";\n" + mAddress.get(position).getHostmac());
             holder.tvAvsItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -64,13 +63,14 @@ public class AVSAdapter extends RecyclerView.Adapter<AVSAdapter.AVSViewHolder> {
     public class AVSViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.tv_avs_item)
         TextView tvAvsItem;
+
         public AVSViewHolder(@NonNull View itemView) {
             super(itemView);
-            ButterKnife.bind(this,itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
-    public interface OnAVSItemClickListener{
+    public interface OnAVSItemClickListener {
         void onAVSClick(int position);
     }
 }

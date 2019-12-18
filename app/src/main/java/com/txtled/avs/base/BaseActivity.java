@@ -71,9 +71,9 @@ public abstract class BaseActivity extends AppCompatActivity {
             toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (isBack){
+                    if (isBack) {
                         onBackPressed();
-                    }else {
+                    } else {
                         onLeftClick();
                     }
 
@@ -95,7 +95,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     }
 
-    public void removeNavigationIcon(){
+    public void removeNavigationIcon() {
         toolbar.setNavigationIcon(null);
     }
 
@@ -136,6 +136,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             return super.onKeyDown(keyCode, event);
         }
     }
+
     @Override
     public void onBackPressed() {
         if (getFragmentManager().getBackStackEntryCount() > 0) {
@@ -144,6 +145,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -164,7 +166,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void showSnackBar(View view, int str) {
         if (snackbar == null) {
             snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE);
-            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.ripple));
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.black));
         }
         snackbar.show();
     }
@@ -172,15 +174,15 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void showSnackBar(View view, String str) {
         if (snackbar == null) {
             snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE);
-            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.ripple));
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.black));
         }
         snackbar.show();
     }
 
     public void showSnackBar(View view, int str, int btnStr, View.OnClickListener listener) {
         if (snackbar == null) {
-            snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE).setAction(btnStr,listener);
-            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.ripple));
+            snackbar = Snackbar.make(view, str, Snackbar.LENGTH_INDEFINITE).setAction(btnStr, listener);
+            snackbar.getView().setBackgroundColor(getResources().getColor(R.color.black));
         }
         snackbar.show();
     }

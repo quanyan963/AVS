@@ -31,15 +31,17 @@ public class Mdnser {
     public ArrayList<NsdServiceInfo> nsdServiceInfos;
     public ArrayList<DeviceHostInfo> ipInfos;
     public int count;
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public Mdnser(Context context){
+    public Mdnser(Context context) {
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         ipInfos = new ArrayList<DeviceHostInfo>();
     }
+
     //扫描
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public void initializeDiscoveryListener() {
-        count=0;
+        count = 0;
         // Instantiate a new DiscoveryListener
         mDiscoveryListener = new NsdManager.DiscoveryListener() {
 
@@ -88,16 +90,16 @@ public class Mdnser {
             }
         };
     }
+
     //连接
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     class mResloveListener implements ResolveListener {
         InetAddress inetAddress;
 
 
-
         @Override
         public void onResolveFailed(NsdServiceInfo nsdServiceInfo, int i) {
-            Log.e(TAG,"Resolve failed" + nsdServiceInfo + "code" + i);
+            Log.e(TAG, "Resolve failed" + nsdServiceInfo + "code" + i);
             mDiscoveryListener.onServiceLost(nsdServiceInfo);
         }
 
@@ -108,16 +110,15 @@ public class Mdnser {
             inetAddress = nsdServiceInfo.getHost();
 
             if (inetAddress instanceof Inet4Address) {
-                Log.e("SUCCESS","addr is "+ inetAddress.getHostAddress());
+                Log.e("SUCCESS", "addr is " + inetAddress.getHostAddress());
 
                 mac_s = readArp(inetAddress.getHostAddress());
-                ipInfos.add(new DeviceHostInfo(nsdServiceInfo.getServiceName(),inetAddress.getHostAddress(), mac_s));
-            }
-            else{
+                ipInfos.add(new DeviceHostInfo(nsdServiceInfo.getServiceName(), inetAddress.getHostAddress(), mac_s));
+            } else {
                 Log.e("FAILED", "addr is IPV6!" + inetAddress.getHostAddress());
 //               ipInfos.add(inetAddress.getHostAddress());
             }
-       }
+        }
     }
 
     private String readArp(String ip_get) {
@@ -141,13 +142,13 @@ public class Mdnser {
                         return mac;
                     }
                     if (mac.contains("00:00:00:00:00:00")) continue;
-                    Log.e("scanner", "readArp: mac= "+mac+" ; ip= "+ip+" ;flag= "+flag);
+                    Log.e("scanner", "readArp: mac= " + mac + " ; ip= " + ip + " ;flag= " + flag);
                 } catch (Exception e) {
                 }
             }
             br.close();
 
-        } catch(Exception e) {
+        } catch (Exception e) {
         }
         return "";
     }

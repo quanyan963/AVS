@@ -19,10 +19,12 @@
 
     //avs
     <string name="setting_avs_wifi_connection">Setting AVS Wifi connection</string>
-    <string name="avs_hint">You should configure the AVS network first. \nThen refresh this list.</string>
+    <string name="avs_hint">You should configure the AVS network first. \nThen try to refresh this list.\n\nIf you have already completed configuration,please change wifi to an already configured network.\nThen try to refresh this list.</string>
     <string name="error">ERROR</string>
     <string name="author_success">Author Successful</string>
     <string name="close">Close</string>
+    <string name="remember_and_copy">Remember the code and copy it</string>
+    <string name="bind_device">Bind Device</string>
 
     //wwa
     <string name="menu_item_about">About App</string>
@@ -46,4 +48,6 @@
     <string name="configure_result_success_item">BSSID = %1$s, InetAddress = %2$s</string>
     <string name="start_conn_wwa">start connecting to WWA</string>
     <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
+    <string name="avs_success">AVS configure is successful</string>
+
 </resources>

@@ -19,10 +19,12 @@
 
     //avs
     <string name="setting_avs_wifi_connection">设置AVS网络连接</string>
-    <string name="avs_hint">你需要先为AVS配置网络。 \n然后刷新此列表。</string>
+    <string name="avs_hint">您需要先为AVS配置网络。 \n然后刷新此列表。\n\n如果您已配置完成，请连接至已配置好的网络，\n然后刷新此列表</string>
     <string name="error">错误</string>
     <string name="author_success">认证成功</string>
     <string name="close">关闭</string>
+    <string name="remember_and_copy">请记住并复制验证码</string>
+    <string name="bind_device">绑定设备</string>
 
     //wwa
     <string name="menu_item_about">About App</string>
@@ -32,18 +34,20 @@
     <string name="bssid_title">BSSID: </string>
     <string name="password_title">Password: </string>
     <string name="device_count_title">Device count: </string>
-    <string name="package_broadcast">Broadcast</string>
-    <string name="package_multicast">Multicast</string>
-    <string name="confirm">Confirm</string>
-    <string name="wifi_5g_message">Device don\'t support 5G Wifi, please make sure the currently connected Wifi is 2.4G</string>
-    <string name="location_disable_message">Location(GPS) is disable</string>
-    <string name="no_wifi_connection">No Wifi connection</string>
-    <string name="configuring_message">Esptouch is configuring, please wait for a moment…</string>
-    <string name="configure_wifi_change_message">Wifi disconnected or changed</string>
-    <string name="configure_result_failed">EspTouch failed</string>
-    <string name="configure_result_failed_port">Create Esptouch task failed, the EspTouch port could be used by other thread</string>
+    <string name="package_broadcast">广播</string>
+    <string name="package_multicast">多播</string>
+    <string name="confirm">确认</string>
+    <string name="wifi_5g_message">设备暂不支持5G频率的wifi, 请确保wifi频率在2.4G</string>
+    <string name="location_disable_message">GPS没有打开</string>
+    <string name="no_wifi_connection">没有连接任何网络</string>
+    <string name="configuring_message">Esptouch正在配置中，请稍候…</string>
+    <string name="configure_wifi_change_message">Wifi断开或更换</string>
+    <string name="configure_result_failed">EspTouch失败</string>
+    <string name="configure_result_failed_port">创建Esptouch任务失败，Esptouch端口可以被其他线程使用</string>
     <string name="configure_result_success">EspTouch 完成</string>
     <string name="configure_result_success_item">BSSID = %1$s, InetAddress = %2$s</string>
-    <string name="start_conn_wwa">start connecting to WWA</string>
-    <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
+    <string name="start_conn_wwa">开始连接至WWA</string>
+    <string name="no_wifi_conn">您还没有连接任何网络</string>
+    <string name="avs_success">AVS configure is successful</string>
+
 </resources>

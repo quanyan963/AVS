@@ -21,5 +21,6 @@ public interface FragmentComponent {
     Activity getActivity();
 
     void inject(AVSFragment avsFragment);
+
     void inject(WWAFragment wwaFragment);
 }

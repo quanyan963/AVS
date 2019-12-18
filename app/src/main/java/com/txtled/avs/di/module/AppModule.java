@@ -1,8 +1,6 @@
 package com.txtled.avs.di.module;
 
 
-
-
 import com.txtled.avs.application.MyApplication;
 import com.txtled.avs.model.DataManagerModel;
 import com.txtled.avs.model.ble.BleHelper;
@@ -75,6 +73,6 @@ public class AppModule {
                                              PreferencesHelperImpl preferencesHelper,
                                              NetHelperImpl netHelper, OperateHelperImpl operateHelper,
                                              BleHelperImpl bleHelper) {
-        return new DataManagerModel(dbHelper, preferencesHelper,netHelper,operateHelper,bleHelper);
+        return new DataManagerModel(dbHelper, preferencesHelper, netHelper, operateHelper, bleHelper);
     }
 }

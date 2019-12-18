@@ -6,11 +6,9 @@ import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.amazon.identity.auth.device.AuthError;
 import com.amazon.identity.auth.device.api.authorization.AuthCancellation;
@@ -18,32 +16,45 @@ import com.amazon.identity.auth.device.api.authorization.AuthorizationManager;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeListener;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeRequest;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeResult;
-import com.amazon.identity.auth.device.api.authorization.ProfileScope;
 import com.amazon.identity.auth.device.api.authorization.ScopeFactory;
 import com.amazon.identity.auth.device.api.workflow.RequestContext;
-import com.amazon.identity.auth.device.authorization.api.AmazonAuthorizationManager;
-import com.amazon.identity.auth.device.authorization.api.AuthorizationListener;
-import com.amazon.identity.auth.device.authorization.api.AuthzConstants;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
-import com.txtled.avs.avs.listener.OnSearchListener;
 import com.txtled.avs.avs.amazonlogin.DeviceProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.ProvisioningClient;
+import com.txtled.avs.avs.listener.OnSearchListener;
+import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.mDNS.Mdnser;
 import com.txtled.avs.model.DataManagerModel;
+import com.txtled.avs.utils.RxUtil;
+import com.txtled.avs.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.ALEXA_ALL_SCOPE;
-import static com.txtled.avs.utils.Constants.APP_SCOPES;
 import static com.txtled.avs.utils.Constants.DEVICE_SERIAL_NUMBER;
-import static com.txtled.avs.utils.Constants.MIN_CONNECT_PROGRESS_TIME_MS;
+import static com.txtled.avs.utils.Constants.GET_CODE;
 import static com.txtled.avs.utils.Constants.PRODUCT_ID;
 import static com.txtled.avs.utils.Constants.PRODUCT_INSTANCE_ATTRIBUTES;
+import static com.txtled.avs.utils.Constants.RESET_DEVICE;
 import static com.txtled.avs.utils.Constants.SERVICE_TYPE;
 
 /**
@@ -51,12 +62,19 @@ import static com.txtled.avs.utils.Constants.SERVICE_TYPE;
  */
 public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSContract.Presenter {
     private DataManagerModel mDataManagerModel;
-    //private AmazonAuthorizationManager mAuthManager;
+
     private ProvisioningClient mProvisioningClient;
     private DeviceProvisioningInfo mDeviceProvisioningInfo;
     private Mdnser mdnser;
     private Activity activity;
     private RequestContext mRequestContext;
+    private Socket socket;
+    private OutputStream outStr = null;
+    private InputStream inStr = null;
+    private Disposable readDisposable;
+    private Disposable writeDisposable;
+    private String mCode;
+    private String address;
 
 
     @Inject
@@ -100,15 +118,53 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
 
     @Override
     public void onItemClick(int position) {
-        final String address = "http://" + mdnser.ipInfos.get(position).getHostip();
-        mProvisioningClient.setEndpoint(address);
+        final String url = "http://" + mdnser.ipInfos.get(position).getHostip();
+        address = mdnser.ipInfos.get(position).getHostip();
+        mProvisioningClient.setEndpoint(url);
 
-        new AsyncTask<Void, Void, DeviceProvisioningInfo>() {
+        if (socket != null) {
+            try {
+                readDisposable.dispose();
+                writeDisposable.dispose();
+                socket.close();
+                socket = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        socket = new Socket();
+        connSocket(true);
+    }
+
+    private void connSocket(boolean sendMsg) {
+        addSubscribe(Flowable.create((FlowableOnSubscribe<Socket>) e -> {
+                    try {
+                        socket.connect(new InetSocketAddress(address, 9000), 3000);
+                        inStr = socket.getInputStream();
+                        outStr = socket.getOutputStream();
+                        e.onNext(socket);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }, BackpressureStrategy.BUFFER).compose(RxUtil.rxSchedulerHelper())
+                        .subscribeWith(new CommonSubscriber<Socket>(view) {
+                            @Override
+                            public void onNext(Socket socket) {
+                                readSocket();
+                                sendSocket(sendMsg == true ? RESET_DEVICE : GET_CODE);
+                            }
+                        })
+        );
+    }
+
+    private void readSocket() {
+        AsyncTask<Void, Void, DeviceProvisioningInfo> temp = new AsyncTask<Void, Void, DeviceProvisioningInfo>() {
             private Exception errorInBackground;
+
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                Log.e("TAG","connect is begin");
+                Log.e("TAG", "connect is begin");
             }
 
             @Override
@@ -118,19 +174,20 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                     DeviceProvisioningInfo response = mProvisioningClient.getDeviceProvisioningInfo();
                     long duration = System.currentTimeMillis() - startTime;
 
-                    if (duration < MIN_CONNECT_PROGRESS_TIME_MS) {
-                        try {
-                            Thread.sleep(MIN_CONNECT_PROGRESS_TIME_MS - duration);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+//                    if (duration < MIN_CONNECT_PROGRESS_TIME_MS) {
+//                        try {
+//                            Thread.sleep(MIN_CONNECT_PROGRESS_TIME_MS - duration);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
                     return response;
                 } catch (Exception e) {
                     errorInBackground = e;
                 }
                 return null;
             }
+
             @Override
             protected void onPostExecute(DeviceProvisioningInfo deviceProvisioningInfo) {
                 super.onPostExecute(deviceProvisioningInfo);
@@ -139,9 +196,9 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
 //                            SharedPreferences.Editor editor = getActivity().getPreferences(Context.MODE_PRIVATE).edit();
 //                            editor.putString(getString(R.string.saved_device_address), address);
 //                            editor.commit();
-                    Log.e("TAG","CONNECT IS SUCCESS");
+                    Log.e("TAG", "CONNECT IS SUCCESS");
 
-                    Log.e("TAG","Startlogin");
+                    Log.e("TAG", "Startlogin");
 
                     final JSONObject scopeData = new JSONObject();
                     final JSONObject productInstanceAttributes = new JSONObject();
@@ -163,38 +220,56 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                         e.printStackTrace();
                     }
 
-
-//                    Bundle options = new Bundle();
-//                    JSONObject scopeData = new JSONObject();
-//                    JSONObject productInfo = new JSONObject();
-//                    JSONObject productInstanceAttributes = new JSONObject();
-//                    try {
-//                        productInstanceAttributes.put(DEVICE_SERIAL_NUMBER, mDeviceProvisioningInfo.getDsn());
-//                        productInfo.put(PRODUCT_ID, mDeviceProvisioningInfo.getProductId());
-//                        productInfo.put(PRODUCT_INSTANCE_ATTRIBUTES, productInstanceAttributes);
-//                        scopeData.put(ALEXA_ALL_SCOPE, productInfo);
-//
-//                        String codeChallenge = mDeviceProvisioningInfo.getCodeChallenge();
-//                        String codeChallengeMethod = mDeviceProvisioningInfo.getCodeChallengeMethod();
-//                        options.putString(AuthzConstants.BUNDLE_KEY.SCOPE_DATA.val, scopeData.toString());
-//                        Log.e(TAG, scopeData.toString());
-//                        options.putBoolean(AuthzConstants.BUNDLE_KEY.GET_AUTH_CODE.val, true);
-//                        options.putString(AuthzConstants.BUNDLE_KEY.CODE_CHALLENGE.val, codeChallenge);
-//                        options.putString(AuthzConstants.BUNDLE_KEY.CODE_CHALLENGE_METHOD.val, codeChallengeMethod);
-//                        AuthorizationManager.authorize(new AuthorizeRequest.Builder(mRequestContext)
-//                                .addScope(ScopeFactory.scopeNamed(ALEXA_ALL_SCOPE, scopeData))
-//                                .forGrantType(AuthorizeRequest.GrantType.AUTHORIZATION_CODE)
-//                                .withProofKeyParameters(codeChallenge, codeChallengeMethod)
-//                                .build());
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-
                 } else {
                     view.showAlertDialog(errorInBackground);
                 }
             }
-        }.execute();
+        };
+        readDisposable = Observable.interval(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io()).subscribe(time -> {
+                    try {
+                        final byte[] b = new byte[1024];
+                        int length = inStr.read(b);
+                        if (length > 0) {
+                            final String str = new String(b).trim();
+                            Utils.Logger(TAG, "Read:", str);
+                            if (str.contains("reset")) {
+                                //readDisposable.dispose();
+                                //socket.connect(new InetSocketAddress(address,9000),3000);
+                                //readSocket();
+                                readDisposable.dispose();
+                                socket.close();
+                                temp.execute();
+                            } else if (str.contains("code")) {
+                                String[] code = str.split("=");
+                                mCode = code[1];
+                                readDisposable.dispose();
+                                socket.close();
+                                view.bindDevice(mCode);
+                            } else {
+                                Utils.Logger(TAG, "Other:", str);
+                            }
+                        }
+                    } catch (Exception e) {
+                        readDisposable.dispose();
+                        socket = new Socket();
+                        socket.connect(new InetSocketAddress(address, 9000), 3000);
+                        readSocket();
+                    }
+                });
+    }
+
+    private void sendSocket(String code) {
+        writeDisposable = Observable.just(socket).subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io()).subscribe(socket -> {
+                    try {
+                        outStr.write(code.getBytes());
+                    } catch (Exception e) {
+                        socket = new Socket();
+                        socket.connect(new InetSocketAddress(address, 9000), 3000);
+                        sendSocket(code);
+                    }
+                });
     }
 
     @Override
@@ -202,19 +277,53 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         mRequestContext.onResume();
     }
 
+    @Override
+    public void startSocket() {
+
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            if (socket != null) {
+                socket.shutdownOutput();
+                socket.shutdownInput();
+                socket.close();
+                socket = null;
+            }
+            if (outStr != null) {
+                outStr.close();
+                outStr = null;
+            }
+            if (inStr != null) {
+                inStr.close();
+                inStr = null;
+            }
+            if (readDisposable != null) {
+                readDisposable.dispose();
+                readDisposable = null;
+            }
+            if (writeDisposable != null) {
+                writeDisposable.dispose();
+                writeDisposable = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     class getIpAsyncTask extends AsyncTask {
         @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
         @Override
         protected Object doInBackground(Object[] objects) {
 
-//            mdnser.initializeDiscoveryListener();
-            mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mdnser.mDiscoveryListener);
+            mdnser.initializeDiscoveryListener();
             try {
-                Thread.sleep(2*1000);
+                mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mdnser.mDiscoveryListener);
+                Thread.sleep(2 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 mdnser.mNsdManager.stopServiceDiscovery(mdnser.mDiscoveryListener);
                 getIpHandler.sendEmptyMessage(0);
             }
@@ -222,7 +331,8 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             return null;
         }
     }
-    Handler getIpHandler = new Handler(){
+
+    Handler getIpHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -231,69 +341,6 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
 
         }
     };
-
-//    private class AuthListener implements AuthorizationListener {
-//        @Override
-//        public void onSuccess(Bundle response) {
-//            try {
-//                final String authorizationCode = response.getString(AuthzConstants.BUNDLE_KEY.AUTHORIZATION_CODE.val);
-//                final String redirectUri = mAuthManager.getRedirectUri();
-//                final String clientId = mAuthManager.getClientId();
-//                final String sessionId = mDeviceProvisioningInfo.getSessionId();
-//
-//                final CompanionProvisioningInfo companionProvisioningInfo = new CompanionProvisioningInfo(sessionId, clientId, redirectUri, authorizationCode);
-//
-//                new AsyncTask<Void, Void, Void>() {
-//                    private Exception errorInBackground;
-//
-//                    @Override
-//                    protected void onPreExecute() {
-//                        super.onPreExecute();
-//                        Log.e("TAG","Logining...");
-//                    }
-//
-//                    @Override
-//                    protected Void doInBackground(Void... voids) {
-//                        try {
-//                            mProvisioningClient.postCompanionProvisioningInfo(companionProvisioningInfo);
-//                        } catch (Exception e) {
-//                            errorInBackground = e;
-//                        }
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    protected void onPostExecute(Void result) {
-//                        super.onPostExecute(result);
-//                        if (errorInBackground != null) {
-//                            Log.e("TAG","Logining...");
-//                            view.showAlertDialog(errorInBackground);
-//                        } else {
-//                            Log.e("TAG","Login success");
-//                            Toast.makeText(activity,"Reflash token is success!",Toast.LENGTH_LONG).show();
-//                        }
-//                    }
-//                }.execute();
-//            } catch (AuthError authError) {
-//                authError.printStackTrace();
-//            }
-//        }
-//
-//        @Override
-//        public void onError(final AuthError ae) {
-//            Log.e(TAG, "AuthError during authorization", ae);
-//            activity.runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    view.showAlertDialog(ae);
-//                }
-//            });
-//        }
-//        @Override
-//        public void onCancel(Bundle cause) {
-//            Log.e(TAG, "User cancelled authorization");
-//        }
-//    }
 
     private class AuthorizeListenerImpl extends AuthorizeListener {
         @Override
@@ -311,7 +358,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                 @Override
                 protected void onPreExecute() {
                     super.onPreExecute();
-                    Log.e("TAG","Login...");
+                    Log.e("TAG", "Login...");
                     //loginInProgressState();
                 }
 
@@ -333,8 +380,9 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                         view.showAlertDialog(errorInBackground);
                     } else {
                         //loginSuccessState();
-                        Log.e("TAG","Login success");
-                        view.showSuccess();
+                        Log.e("TAG", "Login success");
+                        socket = new Socket();
+                        connSocket(false);
                     }
                 }
             }.execute();
@@ -343,12 +391,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         @Override
         public void onError(final AuthError authError) {
             Log.e(TAG, "AuthError during authorization", authError);
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    view.showAlertDialog(authError);
-                }
-            });
+            activity.runOnUiThread(() -> view.showAlertDialog(authError));
         }
 
         @Override

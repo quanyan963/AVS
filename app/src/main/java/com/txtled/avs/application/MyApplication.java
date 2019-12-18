@@ -19,6 +19,7 @@ public class MyApplication extends Application {
     private static MyApplication sInstance;
     private List<Activity> mActivityList;
     private static AppComponent mAppComponent;
+
     @Override
     public void onCreate() {
         super.onCreate();
