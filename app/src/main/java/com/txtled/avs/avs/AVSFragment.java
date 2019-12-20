@@ -2,6 +2,7 @@ package com.txtled.avs.avs;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,14 +32,14 @@ import butterknife.BindView;
 import static com.txtled.avs.utils.Constants.BIND_URL;
 import static com.txtled.avs.utils.Constants.BUNDLE_KEY_EXCEPTION;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_INTERNET_SETTINGS;
+import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 import static com.txtled.avs.utils.Constants.WEB_URL;
 
 /**
  * Created by Mr.Quan on 2019/12/10.
  */
 public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSContract.View
-        , View.OnClickListener, AVSAdapter.OnAVSItemClickListener, SwipeRefreshLayout.OnRefreshListener
-        , OnSearchListener {
+        , View.OnClickListener, AVSAdapter.OnAVSItemClickListener, SwipeRefreshLayout.OnRefreshListener {
     @BindView(R.id.tv_avs_wifi)
     TextView tvAvsWifi;
     @BindView(R.id.rlv_avs_list)
@@ -162,6 +163,25 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         });
     }
 
+    @Override
+    public void hidProgress() {
+        pbAvsLoading.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showNetWorkError() {
+        ((MainActivity)getActivity()).showSnackBar(sflAcsRefresh, R.string.net_unavailable, R.string.go, v -> {
+            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+            ((MainActivity)getActivity()).hideSnackBar();
+        });
+    }
+
+    @Override
+    public void closeRefresh(int i) {
+        sflAcsRefresh.postDelayed(() -> sflAcsRefresh.setRefreshing(false), i);
+    }
+
     public void bindSuccess() {
         tvAvsCode.setVisibility(View.GONE);
         tvAvsBind.setVisibility(View.GONE);
@@ -176,13 +196,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void onRefresh() {
-        presenter.refresh(AVSFragment.this);
-        sflAcsRefresh.postDelayed(() -> sflAcsRefresh.setRefreshing(false), 2100);
-    }
-
-
-    @Override
-    public void onError() {
+        presenter.refresh(getActivity());
 
     }
 

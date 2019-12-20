@@ -55,6 +55,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     private Fragment mCurrentFragment;
     private AVSFragment mAVSFragment;
     private WWAFragment mWWAFragment;
+    private boolean navigationSwitch;
 
     @Override
     public void init() {
@@ -90,6 +91,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         });
     }
 
+    //跳转地理位置
     @Override
     public void openLocation() {
         showSnackBar(rgMainBottom, R.string.no_open_location, R.string.go, new View.OnClickListener() {
@@ -103,12 +105,20 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     }
 
     @Override
+    public void onLeftClick() {
+        navigationSwitch = navigationSwitch == false ? true : false;
+        ((WWAFragment)mCurrentFragment).changeResetView(navigationSwitch);
+
+    }
+
+    @Override
     public void toWebView() {
         Intent intent = new Intent(this, WebViewActivity.class);
         intent.putExtra(WEB_URL,AVS_WIFI_URL);
         startActivity(intent);
     }
 
+    //跳转wifi设置
     @Override
     public void networkNoteMatch() {
         showSnackBar(rgMainBottom, R.string.wifi_no_match, R.string.go, new View.OnClickListener() {
@@ -128,7 +138,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         }
         switchContent(mCurrentFragment, mAVSFragment);
         setTitle(R.string.avs);
-        //removeNavigationIcon();
+        removeNavigationIcon();
         rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.avs, R.color.colorPrimaryDark, this), null, null);
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
@@ -142,7 +152,9 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         }
         switchContent(mCurrentFragment, mWWAFragment);
         setTitle(R.string.wwa);
-        //setNavigationIcon(false);
+        if (presenter.isConfigured()){
+            setNavigationIcon(false);
+        }
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
         rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(

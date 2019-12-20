@@ -5,11 +5,8 @@ package com.txtled.avs.model.prefs;
  */
 
 public interface PreferencesHelper {
-    int getPlayPosition();
 
-    void setPlayPosition(int position);
+    boolean isConfigured();
 
-    boolean isFirstIn();
-
-    void setFirstIn(boolean first);
+    void setIsConfigured(boolean configured);
 }

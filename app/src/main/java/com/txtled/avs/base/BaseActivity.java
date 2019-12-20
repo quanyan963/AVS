@@ -27,7 +27,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     public static final String TAG = BaseActivity.class.getSimpleName();
     public TextView tvTitle;
     public boolean isBack = true;
-    public boolean changeColor = true;
     private long mExitTime;
     private MyApplication mApplication;
     Toolbar toolbar;
@@ -68,16 +67,13 @@ public abstract class BaseActivity extends AppCompatActivity {
             setTitle("");
 
             toolbar.setOnMenuItemClickListener(onMenuItemClick);
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (isBack) {
-                        onBackPressed();
-                    } else {
-                        onLeftClick();
-                    }
-
+            toolbar.setNavigationOnClickListener(v -> {
+                if (isBack) {
+                    onBackPressed();
+                } else {
+                    onLeftClick();
                 }
+
             });
         }
     }
@@ -90,7 +86,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (isBack) {
             //toolbar.setNavigationIcon(R.mipmap.back);
         } else {
-            toolbar.setNavigationIcon(R.drawable.ble);
+            toolbar.setNavigationIcon(R.drawable.reset);
         }
 
     }

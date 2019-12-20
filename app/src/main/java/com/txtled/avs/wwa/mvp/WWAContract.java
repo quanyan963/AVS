@@ -12,6 +12,8 @@ import com.txtled.avs.base.BasePresenter;
 import com.txtled.avs.base.BaseView;
 import com.txtled.avs.wwa.WWAFragment;
 
+import java.util.ArrayList;
+
 /**
  * Created by Mr.Quan on 2019/12/10.
  */
@@ -32,6 +34,8 @@ public interface WWAContract {
         void checkLocation();
 
         void hidSnackBar();
+
+        void setData(ArrayList<String> strReceive);
     }
     interface Presenter extends BasePresenter<View>{
 
@@ -46,5 +50,11 @@ public interface WWAContract {
         void destroy();
 
         void executeTask(WWAFragment wwaFragment, byte[] ssid, byte[] bssid, byte[] password, byte[] deviceCount, byte[] broadcast);
+
+        boolean getIsConfigured();
+
+        void setConfigured(boolean b);
+
+        void onRefresh();
     }
 }

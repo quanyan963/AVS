@@ -16,8 +16,19 @@ import com.txtled.avs.model.DataManagerModel;
 import com.txtled.avs.model.operate.OperateHelper;
 import com.txtled.avs.utils.Constants;
 import com.txtled.avs.wwa.WWAFragment;
+import com.txtled.avs.wwa.udp.UDPBuild;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
+
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 import static android.content.Context.WIFI_SERVICE;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
@@ -31,8 +42,10 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     private static final String TAG = WWAFragment.class.getSimpleName();
     private boolean mReceiverRegistered = false;
     private Context context;
-    private boolean mDestroyed = false;
     private WWAFragment.EsptouchAsyncTask4 mTask;
+    private UDPBuild udpBuild;
+    private ArrayList<String> refreshData;
+    private Disposable timeCount;
 
     @Inject
     public WWAPresenter(DataManagerModel mDataManagerModel) {
@@ -41,11 +54,11 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     @Override
     public void checkPermission(Activity activity) {
-        String[] permissions = {Constants.permissions[0],Constants.permissions[1]};
+        String[] permissions = {Constants.permissions[0], Constants.permissions[1]};
         mDataManagerModel.requestPermissions(activity, permissions, new OperateHelper.OnPermissionsListener() {
             @Override
             public void onSuccess(String name) {
-                if (name.equals(Constants.permissions[1])){
+                if (name.equals(Constants.permissions[1])) {
                     //scanBle(false);
                     view.registerBroadcastReceiver();
                 }
@@ -65,7 +78,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     @Override
     public void onViewClick(int id) {
-        switch (id){
+        switch (id) {
             case R.id.confirm_btn:
                 view.confirm();
                 break;
@@ -99,7 +112,6 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     @Override
     public void destroy() {
-        mDestroyed = true;
         if (mReceiverRegistered) {
             unregisterReceiver(mReceiver);
         }
@@ -112,6 +124,36 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         }
         mTask = new WWAFragment.EsptouchAsyncTask4(wwaFragment);
         mTask.execute(ssid, bssid, password, deviceCount, broadcast);
+    }
+
+    @Override
+    public boolean getIsConfigured() {
+        return mDataManagerModel.isConfigured();
+    }
+
+    @Override
+    public void setConfigured(boolean b) {
+        mDataManagerModel.setIsConfigured(b);
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshData = new ArrayList<>();
+        udpBuild = UDPBuild.getUdpBuild();
+        udpBuild.setUdpReceiveCallback(data -> {
+            String strReceive = new String(data.getData(), 0, data.getLength());
+            refreshData.add(strReceive);
+            setTime();
+        });
+        udpBuild.sendMessage("discovery");
+    }
+
+    private void setTime() {
+        if (timeCount != null){
+            timeCount.dispose();
+        }
+        timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> view.setData(refreshData));
     }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -148,14 +190,14 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             if (mTask != null) {
                 mTask.cancelEsptouch();
                 mTask = null;
-                view.showAlertDialog(R.string.configure_wifi_change_message,android.R.string.cancel,null);
+                view.showAlertDialog(R.string.configure_wifi_change_message, android.R.string.cancel, null);
             }
         } else {
             String ssid = info.getSSID();
             if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
                 ssid = ssid.substring(1, ssid.length() - 1);
             }
-            view.setInfo(ssid,info);
+            view.setInfo(ssid, info);
         }
     }
 }

@@ -22,11 +22,17 @@ public interface AVSContract {
         void initAdapter(ArrayList<DeviceHostInfo> infos);
 
         void bindDevice(String mCode);
+
+        void hidProgress();
+
+        void showNetWorkError();
+
+        void closeRefresh(int i);
     }
 
     interface Presenter extends BasePresenter<View> {
 
-        void refresh(OnSearchListener listener);
+        void refresh(Activity activity);
 
         void initAmazon(Activity activity, Context context);
 

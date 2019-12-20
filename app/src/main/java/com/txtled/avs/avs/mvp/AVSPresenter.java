@@ -21,11 +21,11 @@ import com.amazon.identity.auth.device.api.workflow.RequestContext;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.DeviceProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.ProvisioningClient;
-import com.txtled.avs.avs.listener.OnSearchListener;
 import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.mDNS.Mdnser;
 import com.txtled.avs.model.DataManagerModel;
+import com.txtled.avs.utils.Constants;
 import com.txtled.avs.utils.RxUtil;
 import com.txtled.avs.utils.Utils;
 
@@ -83,9 +83,16 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     }
 
     @Override
-    public void refresh(OnSearchListener listener) {
-        mdnser.ipInfos.clear();
-        new getIpAsyncTask().execute();
+    public void refresh(Activity activity) {
+        if (!Utils.getWifiSSID(activity).contains(Constants.WIFI_NAME)){
+            mdnser.ipInfos.clear();
+            new getIpAsyncTask().execute();
+            view.closeRefresh(3100);
+        }else {
+            view.showNetWorkError();
+            view.closeRefresh(0);
+        }
+
     }
 
     @Override
@@ -320,7 +327,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             mdnser.initializeDiscoveryListener();
             try {
                 mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mdnser.mDiscoveryListener);
-                Thread.sleep(2 * 1000);
+                Thread.sleep(3 * 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
@@ -397,6 +404,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         @Override
         public void onCancel(final AuthCancellation authCancellation) {
             Log.e(TAG, "User cancelled authorization");
+            view.hidProgress();
         }
     }
 }

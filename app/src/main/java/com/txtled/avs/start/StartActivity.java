@@ -68,6 +68,7 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
                 rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(Utils.changeSVGColor(
                         R.drawable.avs, R.color.colorAccent, this),
                         null, null, null);
+                rbMainAvs.setTextColor(getResources().getColor(R.color.colorAccent));
 //                bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(this,rbMainAvs
 //                        ,getString(R.string.share_avs)).toBundle();
                 startActivity(intent);
@@ -76,6 +77,7 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
                 rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(Utils.changeSVGColor(
                         R.drawable.wwa, R.color.colorAccent, this),
                         null, null, null);
+                rbMainWwa.setTextColor(getResources().getColor(R.color.colorAccent));
 //                bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(this,rbMainWwa
 //                        ,getString(R.string.share_wwa)).toBundle();
                 startActivity(intent);

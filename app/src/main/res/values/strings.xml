@@ -25,6 +25,7 @@
     <string name="close">Close</string>
     <string name="remember_and_copy">Remember the code and copy it</string>
     <string name="bind_device">Bind Device</string>
+    <string name="net_unavailable">Network unavailable,please use configured NetWork.</string>
 
     //wwa
     <string name="menu_item_about">About App</string>
@@ -49,5 +50,6 @@
     <string name="start_conn_wwa">start connecting to WWA</string>
     <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
     <string name="avs_success">AVS configure is successful</string>
+
 
 </resources>

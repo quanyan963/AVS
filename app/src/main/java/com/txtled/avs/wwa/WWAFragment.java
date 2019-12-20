@@ -23,7 +23,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.location.LocationManagerCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.amazonaws.services.iot.AWSIot;
+import com.amazonaws.services.iot.AWSIotClient;
+import com.amazonaws.services.iot.AWSIotClientBuilder;
+import com.amazonaws.services.iot.model.CreateThingRequest;
+import com.amazonaws.services.iot.model.CreateThingResult;
 import com.espressif.iot.esptouch.EsptouchTask;
 import com.espressif.iot.esptouch.IEsptouchResult;
 import com.espressif.iot.esptouch.IEsptouchTask;
@@ -49,12 +57,11 @@ import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 /**
  * Created by Mr.Quan on 2019/12/10.
  */
-public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWAContract.View, View.OnClickListener {
+public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWAContract.View
+        , View.OnClickListener, DialogInterface.OnClickListener, SwipeRefreshLayout.OnRefreshListener
+        , WWAAdapter.OnWWAItemClickListener {
     private static final String TAG = WWAFragment.class.getSimpleName();
 
-    private static final int REQUEST_PERMISSION = 0x01;
-
-    private static final int MENU_ITEM_ABOUT = 0;
     @BindView(R.id.ap_ssid_text)
     TextView mApSsidTV;
     @BindView(R.id.ap_bssid_text)
@@ -77,8 +84,14 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     RelativeLayout rlSettingPage;
     @BindView(R.id.tv_register)
     TextView tvRegister;
-
-    private EsptouchAsyncTask4 mTask;
+    @BindView(R.id.rlv_wwa_device)
+    RecyclerView rlvWwaDevice;
+    @BindView(R.id.srl_wwa_devices)
+    SwipeRefreshLayout srlWwaDevices;
+    private boolean isFinishedConfigure;
+    private WWAAdapter adapter;
+    private ArrayList<String> data;
+    private long time;
 
     @Override
     protected void initInject() {
@@ -92,6 +105,25 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void init() {
+        isFinishedConfigure = presenter.getIsConfigured();
+//        if (isFinishedConfigure){
+//            tvRegister.setVisibility(View.GONE);
+//            rlSettingPage.setVisibility(View.GONE);
+//            srlWwaDevices.setVisibility(View.VISIBLE);
+//        }
+        tvRegister.setVisibility(View.GONE);
+        rlSettingPage.setVisibility(View.GONE);
+        srlWwaDevices.setVisibility(View.VISIBLE);
+
+        rlvWwaDevice.setHasFixedSize(true);
+        rlvWwaDevice.setLayoutManager(new LinearLayoutManager(getContext()));
+        srlWwaDevices.setOnRefreshListener(this);
+        data = new ArrayList<>();
+        adapter = new WWAAdapter(data,getContext());
+        adapter.setListener(this);
+
+        rlvWwaDevice.setAdapter(adapter);
+
         mDeviceCountET.setText("1");
         mConfirmBtn.setEnabled(false);
         mConfirmBtn.setOnClickListener(this);
@@ -99,51 +131,23 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         presenter.init(getContext());
     }
 
+    public void changeResetView(boolean type){
+        if (type){
+            tvRegister.setVisibility(View.VISIBLE);
+            rlSettingPage.setVisibility(View.GONE);
+            srlWwaDevices.setVisibility(View.GONE);
+        }else {
+            tvRegister.setVisibility(View.GONE);
+            rlSettingPage.setVisibility(View.GONE);
+            srlWwaDevices.setVisibility(View.VISIBLE);
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         presenter.destroy();
     }
-
-    //    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        menu.add(Menu.NONE, MENU_ITEM_ABOUT, 0, R.string.menu_item_about)
-//                .setIcon(R.drawable.ic_info_outline_white_24dp)
-//                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-//        return super.onCreateOptionsMenu(menu);
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        if (item.getItemId() == MENU_ITEM_ABOUT) {
-//            showAboutDialog();
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
-
-//    private void showAboutDialog() {
-//        String esptouchVer = IEsptouchTask.ESPTOUCH_VERSION;
-//        String appVer = "";
-//        PackageManager packageManager = getPackageManager();
-//        try {
-//            PackageInfo info = packageManager.getPackageInfo(getPackageName(), 0);
-//            appVer = info.versionName;
-//        } catch (PackageManager.NameNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//
-//        CharSequence[] items = new CharSequence[]{
-//                getString(R.string.about_app_version, appVer),
-//                getString(R.string.about_esptouch_version, esptouchVer),
-//        };
-//        new AlertDialog.Builder(this)
-//                .setTitle(R.string.menu_item_about)
-//                .setIcon(R.drawable.ic_info_outline_black_24dp)
-//                .setItems(items, null)
-//                .show();
-//    }
 
     @Override
     public void registerBroadcastReceiver() {
@@ -154,6 +158,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void confirm() {
+        presenter.setConfigured(false);
         byte[] ssid = mApSsidTV.getTag() == null ? ByteUtil.getBytesByString(mApSsidTV.getText().toString())
                 : (byte[]) mApSsidTV.getTag();
         byte[] password = ByteUtil.getBytesByString(mApPasswordET.getText().toString());
@@ -162,7 +167,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         byte[] broadcast = {(byte) (mPackageModeGroup.getCheckedRadioButtonId() == R.id.package_broadcast
                 ? 1 : 0)};
 
-        presenter.executeTask(this,ssid, bssid, password, deviceCount, broadcast);
+        presenter.executeTask(this, ssid, bssid, password, deviceCount, broadcast);
     }
 
     @Override
@@ -181,7 +186,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         mApBssidTV.setText("");
         mMessageTV.setText(R.string.no_wifi_connection);
         mConfirmBtn.setEnabled(false);
-        ((MainActivity)getActivity()).showSnackBar(rlSettingPage, R.string.no_wifi_conn, R.string.go,this);
+        ((MainActivity) getActivity()).showSnackBar(rlSettingPage, R.string.no_wifi_conn, R.string.go, this);
     }
 
     @Override
@@ -204,8 +209,8 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
         mConfirmBtn.setEnabled(true);
         mMessageTV.setText("");
-        if (((MainActivity)getActivity()).snackbar != null &&
-                ((MainActivity)getActivity()).snackbar.isShown()){
+        if (((MainActivity) getActivity()).snackbar != null &&
+                ((MainActivity) getActivity()).snackbar.isShown()) {
             ((MainActivity) getActivity()).hideSnackBar();
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -231,12 +236,40 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     public void hidSnackBar() {
         Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
         startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-        ((MainActivity)getActivity()).hideSnackBar();
+        ((MainActivity) getActivity()).hideSnackBar();
+    }
+
+    @Override
+    public void setData(ArrayList<String> strReceive) {
+        adapter.setData(strReceive);
+        adapter.notifyDataSetChanged();
+        srlWwaDevices.setRefreshing(false);
     }
 
     @Override
     public void onClick(View v) {
         presenter.onViewClick(v.getId());
+    }
+
+    //完成时ok按钮
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        rlSettingPage.setVisibility(View.GONE);
+        srlWwaDevices.setVisibility(View.VISIBLE);
+        presenter.setConfigured(true);
+        ((MainActivity)getActivity()).setNavigationIcon(false);
+        srlWwaDevices.setRefreshing(true);
+    }
+
+    //刷新
+    @Override
+    public void onRefresh() {
+        presenter.onRefresh();
+    }
+
+    @Override
+    public void onAVSClick(int position) {
+
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {
@@ -321,7 +354,6 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         @Override
         protected void onPostExecute(List<IEsptouchResult> result) {
             WWAFragment activity = mActivity.get();
-            activity.mTask = null;
             mProgressDialog.dismiss();
             if (result == null) {
                 mResultDialog = new AlertDialog.Builder(activity.getContext())
@@ -359,7 +391,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
             mResultDialog = new AlertDialog.Builder(activity.getContext())
                     .setTitle(R.string.configure_result_success)
                     .setItems(resultMsgList.toArray(items), null)
-                    .setPositiveButton(android.R.string.ok, null)
+                    .setPositiveButton(android.R.string.ok, activity)
                     .show();
             mResultDialog.setCanceledOnTouchOutside(false);
         }

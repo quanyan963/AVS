@@ -29,5 +29,9 @@ public interface MainContract {
         void getWifiSSid(Activity activity);
 
         void switchFragment(int i);
+
+        boolean isConfigured();
+
+        void setConfigured(boolean b);
     }
 }

@@ -37,6 +37,11 @@ public class WebViewActivity extends MvpBaseActivity<WebViewPresenter> implement
     public void init() {
         Intent intent = getIntent();
         String url = intent.getStringExtra(WEB_URL);
+        webMain.clearMatches();
+        webMain.clearHistory();
+        webMain.clearCache(true);
+        webMain.clearFormData();
+        webMain.clearSslPreferences();
         if (url.equals(AVS_WIFI_URL)){
             LinearLayout back = new LinearLayout(this);
             AbsoluteLayout.LayoutParams mBackLayoutParams = new AbsoluteLayout.LayoutParams(
@@ -61,6 +66,11 @@ public class WebViewActivity extends MvpBaseActivity<WebViewPresenter> implement
         webMain.setWebViewClient(new WebViewClient(){
 
             @Override
+            public void onLoadResource(WebView view, String url) {
+                super.onLoadResource(view, url);
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 //  重写此方法表明点击网页里面的链接还是在当前的webview里跳转，不跳到浏览器那边
                 view.loadUrl(url);
@@ -79,7 +89,17 @@ public class WebViewActivity extends MvpBaseActivity<WebViewPresenter> implement
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        this.finish();
+    }
+
+    @Override
+    public void onDestroy() {
+        webMain.clearMatches();
+        webMain.clearHistory();
+        webMain.clearCache(true);
+        webMain.clearFormData();
+        webMain.clearSslPreferences();
+        super.onDestroy();
+
     }
 
     @Override
