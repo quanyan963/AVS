@@ -6,13 +6,14 @@ import android.content.DialogInterface;
 import android.net.wifi.WifiInfo;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 
+import com.espressif.iot.esptouch.IEsptouchResult;
 import com.txtled.avs.base.BasePresenter;
 import com.txtled.avs.base.BaseView;
 import com.txtled.avs.wwa.WWAFragment;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Mr.Quan on 2019/12/10.
@@ -36,6 +37,8 @@ public interface WWAContract {
         void hidSnackBar();
 
         void setData(ArrayList<String> strReceive);
+
+        void closeRefresh();
     }
     interface Presenter extends BasePresenter<View>{
 
@@ -56,5 +59,9 @@ public interface WWAContract {
         void setConfigured(boolean b);
 
         void onRefresh();
+
+        void insertInfo(List<IEsptouchResult> data);
+
+        void hasData();
     }
 }

@@ -36,14 +36,19 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     @NonNull
     @Override
     public WWAViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item_avs, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item_wwa, parent, false);
         return new WWAViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull WWAViewHolder holder, final int position) {
         if (mData != null) {
-            holder.tvAvsItem.setText(mData.get(position));
+            if (mData.get(position).contains("myiot")){
+                holder.tvWwaItem.setText("bedroom");
+            }else {
+                holder.tvWwaItem.setText("kitchen room");
+            }
+
         }
     }
 
@@ -57,8 +62,8 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     }
 
     public class WWAViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.tv_avs_item)
-        TextView tvAvsItem;
+        @BindView(R.id.tv_wwa_item)
+        TextView tvWwaItem;
 
         public WWAViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,6 +72,6 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     }
 
     public interface OnWWAItemClickListener {
-        void onAVSClick(int position);
+        void onWWAClick(int position);
     }
 }

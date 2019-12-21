@@ -50,5 +50,6 @@
     <string name="configure_result_success_item">BSSID = %1$s, InetAddress = %2$s</string>
     <string name="start_conn_wwa">开始连接至WWA</string>
     <string name="no_wifi_conn">您还没有连接任何网络</string>
+    <string name="nothing">没发现任何设备。</string>
 
 </resources>

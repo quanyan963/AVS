@@ -73,6 +73,14 @@ public class Utils {
         return ssid;
     }
 
+    public static String getWifiIp(int i){
+
+        return (i & 0xFF) + "." +
+                ((i >> 8) & 0xFF) + "." +
+                ((i >> 16) & 0xFF) + "." +
+                (i >> 24 & 0xFF);
+    }
+
     public static VectorDrawableCompat changeSVGColor(@DrawableRes int drawable, @ColorRes int color
             , Context context) {
         VectorDrawableCompat vectorDrawableCompat = VectorDrawableCompat.create(

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 
 
+import com.txtled.avs.bean.WWAInfo;
 import com.txtled.avs.model.ble.BleHelper;
 import com.txtled.avs.model.db.DBHelper;
 import com.txtled.avs.model.net.NetHelper;
@@ -78,5 +79,25 @@ public class DataManagerModel implements DBHelper, PreferencesHelper, NetHelper,
     @Override
     public void setIsConfigured(boolean configured) {
         mPreferencesHelper.setIsConfigured(configured);
+    }
+
+    @Override
+    public void insertWWAInfo(List<WWAInfo> infoList) {
+        mDBDbHelper.insertWWAInfo(infoList);
+    }
+
+    @Override
+    public List<WWAInfo> getWWAInfo() {
+        return mDBDbHelper.getWWAInfo();
+    }
+
+    @Override
+    public void deleteWWAInfo() {
+        mDBDbHelper.deleteWWAInfo();
+    }
+
+    @Override
+    public void upDataWWAInfo(WWAInfo info) {
+        mDBDbHelper.upDataWWAInfo(info);
     }
 }

@@ -121,13 +121,10 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     //跳转wifi设置
     @Override
     public void networkNoteMatch() {
-        showSnackBar(rgMainBottom, R.string.wifi_no_match, R.string.go, new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-                startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-                hideSnackBar();
-            }
+        showSnackBar(rgMainBottom, R.string.wifi_no_match, R.string.go, view -> {
+            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+            hideSnackBar();
         });
     }
 

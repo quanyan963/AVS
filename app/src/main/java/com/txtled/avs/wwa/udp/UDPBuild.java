@@ -11,6 +11,8 @@ import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.txtled.avs.utils.Constants.DISCOVERY;
+
 /**
  * Created by Mr.Quan on 2019/12/20.
  */
@@ -30,21 +32,23 @@ public class UDPBuild {
     private DatagramPacket receivePacket;
 
     private OnUDPReceiveCallbackBlock udpReceiveCallback;
+    private String broadCastIp;
 
     //    提供一个全局的静态方法
-    public static UDPBuild getUdpBuild() {
+    public static UDPBuild getUdpBuild(String selfIp) {
         if (udpBuild == null) {
             synchronized (UDPBuild.class) {
                 if (udpBuild == null) {
-                    udpBuild = new UDPBuild();
+                    udpBuild = new UDPBuild(selfIp);
                 }
             }
         }
         return udpBuild;
     }
 
-    private UDPBuild() {
+    private UDPBuild(String broadCastIp) {
         super();
+        this.broadCastIp = broadCastIp;
         int cpuNumbers = Runtime.getRuntime().availableProcessors();
 //        根据CPU数目初始化线程池
         mThreadPool = Executors.newFixedThreadPool(cpuNumbers * POOL_SIZE);
@@ -85,7 +89,7 @@ public class UDPBuild {
         }
         mThreadPool.execute(() -> {
             try {
-                InetAddress targetAddress = InetAddress.getByName(Constants.SOCKET_HOST);
+                InetAddress targetAddress = InetAddress.getByName(broadCastIp);
 
                 DatagramPacket packet = new DatagramPacket(message.getBytes(), message.length()
                         , targetAddress, Constants.SOCKET_UDP_PORT);
@@ -127,17 +131,22 @@ public class UDPBuild {
                 continue;
             }
             String strReceive = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            Utils.Logger(TAG,"UDPdata:",strReceive + " from " + receivePacket
-                    .getAddress().getHostAddress() + ":" + receivePacket.getPort());
-            if (udpReceiveCallback != null) {
-                udpReceiveCallback.OnParserComplete(receivePacket);
+            if (!strReceive.contains(DISCOVERY)){//!receivePacket.getAddress().getHostAddress().contains(selfIp)
+                Utils.Logger(TAG,"UDPdata:",strReceive + " from " + receivePacket
+                        .getAddress().getHostAddress() + ":" + receivePacket.getPort());
+
+                if (udpReceiveCallback != null ) {
+                    udpReceiveCallback.OnParserComplete(receivePacket);
+                }
             }
 //            每次接收完UDP数据后，重置长度。否则可能会导致下次收到数据包被截断。
             if (receivePacket != null) {
                 receivePacket.setLength(BUFFER_LENGTH);
             }
+
         }
     }
+
     /**
      * 停止UDP
      **/

@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.greenrobot.greendao'
 
 android {
     compileSdkVersion 29
@@ -38,6 +39,12 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
+    }
+
+    greendao {
+        schemaVersion 1
+        daoPackage 'com.txtled.avs.bean.dao'
+        targetGenDir 'src/main/java'
     }
 
 }

@@ -50,6 +50,7 @@
     <string name="start_conn_wwa">start connecting to WWA</string>
     <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
     <string name="avs_success">AVS configure is successful</string>
+    <string name="nothing">Nothing to find.</string>
 
 
 </resources>

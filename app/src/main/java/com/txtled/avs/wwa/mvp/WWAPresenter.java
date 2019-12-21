@@ -6,25 +6,32 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.LocationManager;
+import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 
+import com.espressif.iot.esptouch.IEsptouchResult;
 import com.txtled.avs.R;
+import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
+import com.txtled.avs.bean.WWAInfo;
 import com.txtled.avs.model.DataManagerModel;
 import com.txtled.avs.model.operate.OperateHelper;
 import com.txtled.avs.utils.Constants;
+import com.txtled.avs.utils.RxUtil;
+import com.txtled.avs.utils.Utils;
 import com.txtled.avs.wwa.WWAFragment;
 import com.txtled.avs.wwa.udp.UDPBuild;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -33,6 +40,7 @@ import io.reactivex.schedulers.Schedulers;
 import static android.content.Context.WIFI_SERVICE;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
+import static com.txtled.avs.utils.Constants.DISCOVERY;
 
 /**
  * Created by Mr.Quan on 2019/12/10.
@@ -46,6 +54,9 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     private UDPBuild udpBuild;
     private ArrayList<String> refreshData;
     private Disposable timeCount;
+    private WifiManager my_wifiManager;
+    private DhcpInfo dhcpInfo;
+    private String broadCast = "";
 
     @Inject
     public WWAPresenter(DataManagerModel mDataManagerModel) {
@@ -126,6 +137,24 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         mTask.execute(ssid, bssid, password, deviceCount, broadcast);
     }
 
+    private void getBroadCastIp(){
+        my_wifiManager = ((WifiManager) context.getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE));
+        dhcpInfo = my_wifiManager.getDhcpInfo();
+        String ip = Utils.getWifiIp(dhcpInfo.ipAddress);
+        String netMask = Utils.getWifiIp(dhcpInfo.netmask);
+        String[] ipTemp = ip.split("\\.");
+        String[] maskTemp = netMask.split("\\.");
+        for (int i = 0; i < maskTemp.length; i++) {
+            if (maskTemp[i].equals("255")){
+                broadCast += ipTemp[i] + ".";
+            }else {
+                broadCast +=  String.valueOf((255 - Integer.parseInt(maskTemp[i]))) + (i == maskTemp.length - 1 ? "" : ".") ;
+
+            }
+        }
+    }
+
     @Override
     public boolean getIsConfigured() {
         return mDataManagerModel.isConfigured();
@@ -138,14 +167,48 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     @Override
     public void onRefresh() {
-        refreshData = new ArrayList<>();
-        udpBuild = UDPBuild.getUdpBuild();
-        udpBuild.setUdpReceiveCallback(data -> {
-            String strReceive = new String(data.getData(), 0, data.getLength());
-            refreshData.add(strReceive);
-            setTime();
+        //获取wifi服务
+        WifiManager wifiManager =(WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+        //判断wifi是否开启
+        if (!wifiManager.isWifiEnabled()) {
+            //wifiManager.setWifiEnabled(true);
+            view.setData(null);
+        }else {
+            getBroadCastIp();
+            refreshData = new ArrayList<>();
+            udpBuild = UDPBuild.getUdpBuild(broadCast);
+            udpBuild.setUdpReceiveCallback(data -> {
+                String strReceive = new String(data.getData(), 0, data.getLength());
+                refreshData.add(strReceive);
+                setTime();
+            });
+            udpBuild.sendMessage(DISCOVERY);
+        }
+    }
+
+    @Override
+    public void insertInfo(List<IEsptouchResult> data) {
+        List<WWAInfo> infoList = new ArrayList<>();
+        for (IEsptouchResult result: data) {
+            infoList.add(new WWAInfo(result.getBssid(),result.getInetAddress().getHostAddress()));
+        }
+        //mDataManagerModel.insertWWAInfo(infoList);
+    }
+
+    @Override
+    public void hasData() {
+        Flowable.timer(5,TimeUnit.SECONDS).compose(RxUtil.rxSchedulerHelper())
+                .subscribeWith(new CommonSubscriber<Long>(view) {
+            @Override
+            public void onNext(Long aLong) {
+                if (refreshData == null || refreshData.isEmpty()){
+                    view.closeRefresh();
+                    if (udpBuild != null){
+                        udpBuild.stopUDPSocket();
+                    }
+                }
+            }
         });
-        udpBuild.sendMessage("discovery");
     }
 
     private void setTime() {
@@ -153,7 +216,11 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             timeCount.dispose();
         }
         timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> view.setData(refreshData));
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
+                    view.setData(refreshData);
+                    udpBuild.stopUDPSocket();
+                }
+                );
     }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {

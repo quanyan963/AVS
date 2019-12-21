@@ -1,6 +1,6 @@
 package com.txtled.avs.model.db;
 
-
+import com.txtled.avs.bean.WWAInfo;
 
 import java.util.List;
 
@@ -9,5 +9,12 @@ import java.util.List;
  */
 
 public interface DBHelper {
+    void insertWWAInfo(List<WWAInfo> infoList);
+
+    List<WWAInfo> getWWAInfo();
+
+    void deleteWWAInfo();
+
+    void upDataWWAInfo(WWAInfo info);
 
 }

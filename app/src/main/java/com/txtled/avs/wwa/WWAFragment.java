@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
+import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -91,7 +93,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     private boolean isFinishedConfigure;
     private WWAAdapter adapter;
     private ArrayList<String> data;
-    private long time;
+
 
     @Override
     protected void initInject() {
@@ -106,14 +108,14 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void init() {
         isFinishedConfigure = presenter.getIsConfigured();
-//        if (isFinishedConfigure){
-//            tvRegister.setVisibility(View.GONE);
-//            rlSettingPage.setVisibility(View.GONE);
-//            srlWwaDevices.setVisibility(View.VISIBLE);
-//        }
-        tvRegister.setVisibility(View.GONE);
-        rlSettingPage.setVisibility(View.GONE);
-        srlWwaDevices.setVisibility(View.VISIBLE);
+        if (isFinishedConfigure){
+            tvRegister.setVisibility(View.GONE);
+            rlSettingPage.setVisibility(View.GONE);
+            srlWwaDevices.setVisibility(View.VISIBLE);
+        }
+//        tvRegister.setVisibility(View.GONE);
+//        rlSettingPage.setVisibility(View.GONE);
+//        srlWwaDevices.setVisibility(View.VISIBLE);
 
         rlvWwaDevice.setHasFixedSize(true);
         rlvWwaDevice.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -129,6 +131,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         mConfirmBtn.setOnClickListener(this);
         tvRegister.setOnClickListener(this);
         presenter.init(getContext());
+
     }
 
     public void changeResetView(boolean type){
@@ -159,6 +162,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void confirm() {
         presenter.setConfigured(false);
+        ((MainActivity)getActivity()).removeNavigationIcon();
         byte[] ssid = mApSsidTV.getTag() == null ? ByteUtil.getBytesByString(mApSsidTV.getText().toString())
                 : (byte[]) mApSsidTV.getTag();
         byte[] password = ByteUtil.getBytesByString(mApPasswordET.getText().toString());
@@ -241,9 +245,24 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void setData(ArrayList<String> strReceive) {
-        adapter.setData(strReceive);
-        adapter.notifyDataSetChanged();
+
+        if (strReceive != null){
+            adapter.setData(strReceive);
+            adapter.notifyDataSetChanged();
+        }else {
+            ((MainActivity)getActivity()).showSnackBar(srlWwaDevices, R.string.no_wifi_connection, R.string.go, v -> {
+                Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+                ((MainActivity)getActivity()).hideSnackBar();
+            });
+        }
         srlWwaDevices.setRefreshing(false);
+    }
+
+    @Override
+    public void closeRefresh() {
+        srlWwaDevices.setRefreshing(false);
+        Toast.makeText(getContext(), R.string.nothing,Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -259,17 +278,24 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         presenter.setConfigured(true);
         ((MainActivity)getActivity()).setNavigationIcon(false);
         srlWwaDevices.setRefreshing(true);
+        presenter.onRefresh();
     }
 
     //刷新
     @Override
     public void onRefresh() {
         presenter.onRefresh();
+        presenter.hasData();
     }
 
+    //配置iot core
     @Override
-    public void onAVSClick(int position) {
+    public void onWWAClick(int position) {
 
+    }
+
+    public void insertWWAInfo (List<IEsptouchResult> data) {
+        presenter.insertInfo(data);
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {
@@ -387,6 +413,9 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
                         touchResult.getBssid(), touchResult.getInetAddress().getHostAddress());
                 resultMsgList.add(message);
             }
+
+            //activity.insertWWAInfo(result);
+
             CharSequence[] items = new CharSequence[resultMsgList.size()];
             mResultDialog = new AlertDialog.Builder(activity.getContext())
                     .setTitle(R.string.configure_result_success)
