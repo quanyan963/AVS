@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 
 
+import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.bean.WWAInfo;
 import com.txtled.avs.model.ble.BleHelper;
 import com.txtled.avs.model.db.DBHelper;
@@ -82,12 +83,12 @@ public class DataManagerModel implements DBHelper, PreferencesHelper, NetHelper,
     }
 
     @Override
-    public void insertWWAInfo(List<WWAInfo> infoList) {
+    public void insertWWAInfo(List<WWADeviceInfo> infoList) {
         mDBDbHelper.insertWWAInfo(infoList);
     }
 
     @Override
-    public List<WWAInfo> getWWAInfo() {
+    public List<WWADeviceInfo> getWWAInfo() {
         return mDBDbHelper.getWWAInfo();
     }
 
@@ -97,7 +98,7 @@ public class DataManagerModel implements DBHelper, PreferencesHelper, NetHelper,
     }
 
     @Override
-    public void upDataWWAInfo(WWAInfo info) {
+    public void upDataWWAInfo(WWADeviceInfo info) {
         mDBDbHelper.upDataWWAInfo(info);
     }
 }

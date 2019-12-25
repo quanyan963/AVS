@@ -343,6 +343,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
                     view.setData(refreshData);
+                    mDataManagerModel.insertWWAInfo(refreshData);
                     udpBuild.stopUDPSocket();
                 }
                 );

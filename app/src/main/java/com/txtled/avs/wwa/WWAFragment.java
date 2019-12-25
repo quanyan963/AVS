@@ -248,22 +248,6 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     public void setData(ArrayList<WWADeviceInfo> strReceive) {
 
         if (strReceive != null) {
-            try {
-                JSONObject data = new JSONObject().getJSONObject("{\"ip\":\"设备IP地址\"," +
-                        "\"netmask\":\"设备子网掩码\",\"gw\":\"设备网关地址\"," +
-                        "\"host\":\"AWS Endpoint\",\"port\":AWS Endpoint端口," +
-                        "\"cid\":\"ClientID\",\"thing\":\"事物名称\"}");
-                WWADeviceInfo info = new WWADeviceInfo(data.getString("ip"),
-                        data.getString("netmask"),
-                        data.getString("gw"),
-                        data.getString("host"),
-                        data.getString("port"),
-                        data.getString("cid"),
-                        data.getString("thing"));
-                info.setConfigure(false);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
             adapter.setData(strReceive);
             adapter.notifyDataSetChanged();
         } else {
@@ -309,10 +293,6 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void onWWAClick(int position) {
 
-    }
-
-    public void insertWWAInfo(List<IEsptouchResult> data) {
-        presenter.insertInfo(data);
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {

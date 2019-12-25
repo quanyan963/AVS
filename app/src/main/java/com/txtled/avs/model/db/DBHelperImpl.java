@@ -4,6 +4,7 @@ package com.txtled.avs.model.db;
 
 
 import com.txtled.avs.application.MyApplication;
+import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.bean.WWAInfo;
 import com.txtled.avs.bean.dao.DaoMaster;
 import com.txtled.avs.bean.dao.DaoSession;
@@ -32,22 +33,22 @@ public class DBHelperImpl implements DBHelper {
     }
 
     @Override
-    public void insertWWAInfo(List<WWAInfo> infoList) {
-        mDaoSession.getWWAInfoDao().insertInTx(infoList);
+    public void insertWWAInfo(List<WWADeviceInfo> infoList) {
+        mDaoSession.getWWADeviceInfoDao().insertInTx(infoList);
     }
 
     @Override
-    public List<WWAInfo> getWWAInfo() {
-        return mDaoSession.getWWAInfoDao().loadAll();
+    public List<WWADeviceInfo> getWWAInfo() {
+        return mDaoSession.getWWADeviceInfoDao().loadAll();
     }
 
     @Override
     public void deleteWWAInfo() {
-        mDaoSession.getWWAInfoDao().deleteAll();
+        mDaoSession.getWWADeviceInfoDao().deleteAll();
     }
 
     @Override
-    public void upDataWWAInfo(WWAInfo info) {
-        mDaoSession.getWWAInfoDao().update(info);
+    public void upDataWWAInfo(WWADeviceInfo info) {
+        mDaoSession.getWWADeviceInfoDao().update(info);
     }
 }
