@@ -30,7 +30,10 @@
             android:layout_gravity="right"
             android:layout_marginRight="@dimen/dp_8_x"
             android:paddingRight="@dimen/dp_4_x"
-            android:paddingLeft="@dimen/dp_8_x"/>
+            android:paddingTop="@dimen/dp_4_x"
+            android:paddingBottom="@dimen/dp_4_x"
+            android:paddingLeft="@dimen/dp_4_x"
+            android:background="?android:attr/selectableItemBackground"/>
 
         <TextView
             android:visibility="gone"

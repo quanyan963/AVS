@@ -37,7 +37,7 @@ import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 import static com.txtled.avs.utils.Constants.WEB_URL;
 
 public class MainActivity extends MvpBaseActivity<MainPresenter> implements MainContract.View
-        , RadioGroup.OnCheckedChangeListener {
+        , RadioGroup.OnCheckedChangeListener, View.OnClickListener {
 
 
     @BindView(R.id.fl_main_fragment)
@@ -65,7 +65,8 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         mCurrentFragment = new AVSFragment();
         rgMainBottom.setOnCheckedChangeListener(this);
         rgMainBottom.check(checkId);
-
+        setNavigationIcon(true);
+        setRightImg(getDrawable(R.drawable.reset),this);
     }
 
     @Override
@@ -135,7 +136,8 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         }
         switchContent(mCurrentFragment, mAVSFragment);
         setTitle(R.string.avs);
-        removeNavigationIcon();
+        //removeNavigationIcon();
+        isShowRightImg(false);
         rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.avs, R.color.colorPrimaryDark, this), null, null);
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
@@ -150,7 +152,8 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         switchContent(mCurrentFragment, mWWAFragment);
         setTitle(R.string.wwa);
         if (presenter.isConfigured()){
-            setNavigationIcon(false);
+            //setNavigationIcon(false);
+            isShowRightImg(true);
         }
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
@@ -188,6 +191,16 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         }
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.iv_right:
+                navigationSwitch = navigationSwitch == false ? true : false;
+                ((WWAFragment)mCurrentFragment).changeResetView(navigationSwitch);
+                break;
+        }
+    }
+
     public static class ErrorDialogFragment extends DialogFragment {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -216,7 +229,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
 
     @Override
     public void onBackPressed() {
-        if (snackbar.isShown()){
+        if (snackbar != null && snackbar.isShown()){
             hideSnackBar();
         }else {
             super.onBackPressed();

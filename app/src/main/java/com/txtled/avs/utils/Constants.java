@@ -28,4 +28,17 @@ public class Constants {
     public static final String WEB_URL = "web_url";
     public static final int SOCKET_UDP_PORT = 9001;
     public static final String DISCOVERY = "discovery";
+    public static final String ACCESS_KEY = "AKIAY5HP5FM2TZFJ5XCG";
+    public static final String SECRET_ACCESS_KEY = "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";
+    public static final String MY_OIT_CE = "myiotce";
+    public static final String POLICY_JSON = "{\n" +
+            "  \"Version\": \"2012-10-17\",\n" +
+            "  \"Statement\": [\n" +
+            "    {\n" +
+            "      \"Effect\": \"Allow\",\n" +
+            "      \"Action\": \"iot:*\",\n" +
+            "      \"Resource\": \"*\"\n" +
+            "    }\n" +
+            "  ]\n" +
+            "}";
 }

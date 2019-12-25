@@ -7,9 +7,11 @@ import android.net.wifi.WifiInfo;
 
 import androidx.annotation.Nullable;
 
+import com.amazonaws.services.iot.AWSIot;
 import com.espressif.iot.esptouch.IEsptouchResult;
 import com.txtled.avs.base.BasePresenter;
 import com.txtled.avs.base.BaseView;
+import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.wwa.WWAFragment;
 
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ public interface WWAContract {
 
         void hidSnackBar();
 
-        void setData(ArrayList<String> strReceive);
+        void setData(ArrayList<WWADeviceInfo> strReceive);
 
         void closeRefresh();
     }
@@ -63,5 +65,9 @@ public interface WWAContract {
         void insertInfo(List<IEsptouchResult> data);
 
         void hasData();
+
+        AWSIot getAmazonIotService();
+
+        void createThing();
     }
 }

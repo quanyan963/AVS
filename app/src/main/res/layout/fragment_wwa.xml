@@ -2,13 +2,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/light_grey">
 
     <RelativeLayout
         android:id="@+id/rl_setting_page"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/dp_16_x"
+        android:layout_margin="@dimen/dp_12_x"
+        android:padding="@dimen/dp_6_x"
+        android:background="@drawable/background_white"
         android:visibility="gone">
         <TextView
             android:id="@+id/ap_ssid_label"
@@ -125,7 +128,7 @@
             android:text="@string/confirm"
             android:layout_alignParentBottom="true" />
     </RelativeLayout>
-    <TextView
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/tv_register"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -135,18 +138,30 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="@string/start_conn_wwa"
-        android:padding="@dimen/dp_6_x"
         android:background="@drawable/ripple_item_layout_effect"/>
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:visibility="gone"
-        android:id="@+id/srl_wwa_devices"
+    <RelativeLayout
+        android:id="@+id/rl_wwa_device"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rlv_wwa_device"
+        android:layout_height="match_parent"
+        android:background="@drawable/background_white"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/tv_wwa_devices"
+            style="@style/main_tv"
+            android:text="WWA device list"
+            android:layout_centerHorizontal="true"
+            android:padding="@dimen/dp_6_x"/>
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:layout_below="@+id/tv_wwa_devices"
+            android:id="@+id/srl_wwa_devices"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rlv_wwa_device"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            </androidx.recyclerview.widget.RecyclerView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

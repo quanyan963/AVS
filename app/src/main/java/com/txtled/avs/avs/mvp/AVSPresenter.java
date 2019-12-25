@@ -104,12 +104,6 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         mRequestContext = RequestContext.create(activity);
         mRequestContext.registerListener(new AuthorizeListenerImpl());
 
-//        try {
-//            mAuthManager = new AmazonAuthorizationManager(context, Bundle.EMPTY);
-//        } catch (IllegalArgumentException e) {
-//            view.showAlertDialog(e);
-//            Log.e(TAG, "Unable to use Amazon Authorization Manager. APIKey is incorrect or does not exist.", e);
-//        }
         try {
             mProvisioningClient = new ProvisioningClient(context);
         } catch (Exception e) {

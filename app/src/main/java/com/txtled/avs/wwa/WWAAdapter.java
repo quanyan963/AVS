@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.txtled.avs.R;
+import com.txtled.avs.bean.WWADeviceInfo;
 
 import java.util.ArrayList;
 
@@ -20,11 +21,11 @@ import butterknife.ButterKnife;
  * Created by Mr.Quan on 2019/12/11.
  */
 public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
-    private ArrayList<String> mData;
+    private ArrayList<WWADeviceInfo> mData;
     private Context mContext;
     private OnWWAItemClickListener listener;
 
-    public WWAAdapter(ArrayList<String> mData, Context mContext) {
+    public WWAAdapter(ArrayList<WWADeviceInfo> mData, Context mContext) {
         this.mData = mData;
         this.mContext = mContext;
     }
@@ -43,12 +44,8 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull WWAViewHolder holder, final int position) {
         if (mData != null) {
-            if (mData.get(position).contains("myiot")){
-                holder.tvWwaItem.setText("bedroom");
-            }else {
-                holder.tvWwaItem.setText("kitchen room");
-            }
-
+            holder.tvWwaItem.setText(mData.get(position).getIp());
+            holder.itemView.setOnClickListener(v -> listener.onWWAClick(position));
         }
     }
 
@@ -57,7 +54,7 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
         return mData == null ? 0 : mData.size();
     }
 
-    public void setData(ArrayList<String> strReceive) {
+    public void setData(ArrayList<WWADeviceInfo> strReceive) {
         mData = strReceive;
     }
 

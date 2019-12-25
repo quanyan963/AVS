@@ -5,9 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.LocationManager;
-import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,11 +27,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.amazonaws.services.iot.AWSIot;
-import com.amazonaws.services.iot.AWSIotClient;
-import com.amazonaws.services.iot.AWSIotClientBuilder;
-import com.amazonaws.services.iot.model.CreateThingRequest;
-import com.amazonaws.services.iot.model.CreateThingResult;
 import com.espressif.iot.esptouch.EsptouchTask;
 import com.espressif.iot.esptouch.IEsptouchResult;
 import com.espressif.iot.esptouch.IEsptouchTask;
@@ -43,10 +36,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.txtled.avs.R;
 import com.txtled.avs.base.MvpBaseFragment;
+import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.main.MainActivity;
 import com.txtled.avs.utils.Utils;
 import com.txtled.avs.wwa.mvp.WWAContract;
 import com.txtled.avs.wwa.mvp.WWAPresenter;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -90,9 +87,11 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     RecyclerView rlvWwaDevice;
     @BindView(R.id.srl_wwa_devices)
     SwipeRefreshLayout srlWwaDevices;
+    @BindView(R.id.rl_wwa_device)
+    RelativeLayout rlWwaDevice;
     private boolean isFinishedConfigure;
     private WWAAdapter adapter;
-    private ArrayList<String> data;
+    private ArrayList<WWADeviceInfo> data;
 
 
     @Override
@@ -108,20 +107,17 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void init() {
         isFinishedConfigure = presenter.getIsConfigured();
-        if (isFinishedConfigure){
+        if (isFinishedConfigure) {
             tvRegister.setVisibility(View.GONE);
             rlSettingPage.setVisibility(View.GONE);
-            srlWwaDevices.setVisibility(View.VISIBLE);
+            rlWwaDevice.setVisibility(View.VISIBLE);
         }
-//        tvRegister.setVisibility(View.GONE);
-//        rlSettingPage.setVisibility(View.GONE);
-//        srlWwaDevices.setVisibility(View.VISIBLE);
 
         rlvWwaDevice.setHasFixedSize(true);
         rlvWwaDevice.setLayoutManager(new LinearLayoutManager(getContext()));
         srlWwaDevices.setOnRefreshListener(this);
         data = new ArrayList<>();
-        adapter = new WWAAdapter(data,getContext());
+        adapter = new WWAAdapter(data, getContext());
         adapter.setListener(this);
 
         rlvWwaDevice.setAdapter(adapter);
@@ -132,17 +128,21 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         tvRegister.setOnClickListener(this);
         presenter.init(getContext());
 
+        //连接iot
+        presenter.getAmazonIotService();
+        //presenter.createThing();
+
     }
 
-    public void changeResetView(boolean type){
-        if (type){
+    public void changeResetView(boolean type) {
+        if (type) {
             tvRegister.setVisibility(View.VISIBLE);
             rlSettingPage.setVisibility(View.GONE);
-            srlWwaDevices.setVisibility(View.GONE);
-        }else {
+            rlWwaDevice.setVisibility(View.GONE);
+        } else {
             tvRegister.setVisibility(View.GONE);
             rlSettingPage.setVisibility(View.GONE);
-            srlWwaDevices.setVisibility(View.VISIBLE);
+            rlWwaDevice.setVisibility(View.VISIBLE);
         }
     }
 
@@ -156,13 +156,14 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     public void registerBroadcastReceiver() {
         presenter.registerBroadcast();
         tvRegister.setVisibility(View.GONE);
+        rlWwaDevice.setVisibility(View.GONE);
         rlSettingPage.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void confirm() {
         presenter.setConfigured(false);
-        ((MainActivity)getActivity()).removeNavigationIcon();
+        ((MainActivity) getActivity()).removeNavigationIcon();
         byte[] ssid = mApSsidTV.getTag() == null ? ByteUtil.getBytesByString(mApSsidTV.getText().toString())
                 : (byte[]) mApSsidTV.getTag();
         byte[] password = ByteUtil.getBytesByString(mApPasswordET.getText().toString());
@@ -244,16 +245,32 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     }
 
     @Override
-    public void setData(ArrayList<String> strReceive) {
+    public void setData(ArrayList<WWADeviceInfo> strReceive) {
 
-        if (strReceive != null){
+        if (strReceive != null) {
+            try {
+                JSONObject data = new JSONObject().getJSONObject("{\"ip\":\"设备IP地址\"," +
+                        "\"netmask\":\"设备子网掩码\",\"gw\":\"设备网关地址\"," +
+                        "\"host\":\"AWS Endpoint\",\"port\":AWS Endpoint端口," +
+                        "\"cid\":\"ClientID\",\"thing\":\"事物名称\"}");
+                WWADeviceInfo info = new WWADeviceInfo(data.getString("ip"),
+                        data.getString("netmask"),
+                        data.getString("gw"),
+                        data.getString("host"),
+                        data.getString("port"),
+                        data.getString("cid"),
+                        data.getString("thing"));
+                info.setConfigure(false);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
             adapter.setData(strReceive);
             adapter.notifyDataSetChanged();
-        }else {
-            ((MainActivity)getActivity()).showSnackBar(srlWwaDevices, R.string.no_wifi_connection, R.string.go, v -> {
+        } else {
+            ((MainActivity) getActivity()).showSnackBar(srlWwaDevices, R.string.no_wifi_connection, R.string.go, v -> {
                 Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
                 startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-                ((MainActivity)getActivity()).hideSnackBar();
+                ((MainActivity) getActivity()).hideSnackBar();
             });
         }
         srlWwaDevices.setRefreshing(false);
@@ -262,7 +279,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void closeRefresh() {
         srlWwaDevices.setRefreshing(false);
-        Toast.makeText(getContext(), R.string.nothing,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), R.string.nothing, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -274,9 +291,9 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void onClick(DialogInterface dialog, int which) {
         rlSettingPage.setVisibility(View.GONE);
-        srlWwaDevices.setVisibility(View.VISIBLE);
+        rlWwaDevice.setVisibility(View.VISIBLE);
         presenter.setConfigured(true);
-        ((MainActivity)getActivity()).setNavigationIcon(false);
+        ((MainActivity) getActivity()).setNavigationIcon(false);
         srlWwaDevices.setRefreshing(true);
         presenter.onRefresh();
     }
@@ -294,7 +311,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     }
 
-    public void insertWWAInfo (List<IEsptouchResult> data) {
+    public void insertWWAInfo(List<IEsptouchResult> data) {
         presenter.insertInfo(data);
     }
 

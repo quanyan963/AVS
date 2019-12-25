@@ -84,7 +84,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void setNavigationIcon(boolean isBack) {
         this.isBack = isBack;
         if (isBack) {
-            //toolbar.setNavigationIcon(R.mipmap.back);
+            toolbar.setNavigationIcon(R.drawable.black_back);
         } else {
             toolbar.setNavigationIcon(R.drawable.reset);
         }
@@ -95,23 +95,22 @@ public abstract class BaseActivity extends AppCompatActivity {
         toolbar.setNavigationIcon(null);
     }
 
-    public void setRightImg(boolean isShow, @Nullable Drawable drawable, View.OnClickListener listener) {
-        if (isShow) {
-            ivRight.setVisibility(View.VISIBLE);
-            ivRight.setImageDrawable(drawable);
-            ivRight.setOnClickListener(listener);
-        } else {
-            ivRight.setVisibility(View.GONE);
-        }
-
+    public void setRightImg(Drawable drawable, View.OnClickListener listener) {
+        ivRight.setImageDrawable(drawable);
+        ivRight.setOnClickListener(listener);
     }
 
-    public Toolbar.OnMenuItemClickListener onMenuItemClick = new Toolbar.OnMenuItemClickListener() {
-        @Override
-        public boolean onMenuItemClick(MenuItem menuItem) {
-            OnMenuItemClick(menuItem.getItemId());
-            return true;
+    public void isShowRightImg(boolean isShow){
+        if (isShow){
+            ivRight.setVisibility(View.VISIBLE);
+        }else {
+            ivRight.setVisibility(View.GONE);
         }
+    }
+
+    public Toolbar.OnMenuItemClickListener onMenuItemClick = menuItem -> {
+        OnMenuItemClick(menuItem.getItemId());
+        return true;
     };
 
     public void OnMenuItemClick(int itemId) {

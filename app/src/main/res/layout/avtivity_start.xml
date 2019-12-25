@@ -3,20 +3,26 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:background="@mipmap/inner_background">
 
     <RadioGroup
         android:id="@+id/rg_start_check"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/dp_32_y"
-        android:layout_marginBottom="@dimen/dp_32_y"
         android:gravity="center">
         <RadioButton
             style="@style/nav_rb"
-            android:layout_weight="1"
+            android:layout_weight="0.5"
             android:layout_width="match_parent"
             android:layout_height="0dp"/>
+        <RadioButton
+            android:id="@+id/rb_main_avs_img"
+            style="@style/nav_rb"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:drawableBottom="@mipmap/avs"/>
         <RadioButton
             android:id="@+id/rb_main_avs"
             style="@style/nav_rb"
@@ -26,12 +32,16 @@
             android:drawablePadding="@dimen/dp_22_x"
             android:drawableLeft="@drawable/avs"
             android:transitionName="@string/share_avs"
+            android:padding="@dimen/dp_12_x"
             android:text="@string/avs_setting"/>
+
         <RadioButton
+            android:id="@+id/rb_main_wwa_img"
             style="@style/nav_rb"
             android:layout_weight="1"
             android:layout_width="match_parent"
-            android:layout_height="0dp"/>
+            android:layout_height="0dp"
+            android:drawableBottom="@mipmap/wwa"/>
         <RadioButton
             android:id="@+id/rb_main_wwa"
             style="@style/nav_rb"
@@ -41,11 +51,21 @@
             android:drawableLeft="@drawable/wwa"
             android:transitionName="@string/share_wwa"
             android:drawablePadding="@dimen/dp_16_x"
+            android:padding="@dimen/dp_12_x"
             android:text="@string/wwa_setting"/>
         <RadioButton
             style="@style/nav_rb"
             android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="0dp"/>
+        <RadioButton
+            style="@style/nav_rb"
+            android:layout_weight="0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/g_amp_y_co_ltd"
+            android:textStyle="bold"
+            android:padding="@dimen/dp_6_x"/>
     </RadioGroup>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -15,7 +15,6 @@ import java.util.List;
  */
 public class MyApplication extends Application {
 
-    //private static ImageLoader mImageLoader;
     private static MyApplication sInstance;
     private List<Activity> mActivityList;
     private static AppComponent mAppComponent;

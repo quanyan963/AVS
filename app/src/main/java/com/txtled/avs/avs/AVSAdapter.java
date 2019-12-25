@@ -46,12 +46,7 @@ public class AVSAdapter extends RecyclerView.Adapter<AVSAdapter.AVSViewHolder> {
         if (mAddress != null) {
             holder.tvAvsItem.setText(mAddress.get(position).getHostname() + ";\n"
                     + mAddress.get(position).getHostip() + ";\n" + mAddress.get(position).getHostmac());
-            holder.tvAvsItem.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onAVSClick(position);
-                }
-            });
+            holder.tvAvsItem.setOnClickListener(v -> listener.onAVSClick(position));
         }
     }
 

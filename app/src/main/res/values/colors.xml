@@ -4,8 +4,8 @@
     <color name="colorPrimaryDark">#6699cc</color>
     <color name="colorAccent">#99ccff</color>
 
-    <color name="gray">#dddddd</color>
-    <color name="ripple">#ffffff</color>
+    <color name="gray">#dfdfdf</color>
+    <color name="ripple">#eeeeee</color>
     <color name="black">#2c2c2c</color>
-    <color name="light_grey">#f9f9f9</color>
+    <color name="light_grey">#f7f7f7</color>
 </resources>

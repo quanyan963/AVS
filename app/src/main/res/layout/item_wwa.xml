@@ -12,11 +12,21 @@
     <TextView
         android:id="@+id/tv_wwa_item"
         style="@style/main_tv"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:layout_gravity="center"
         android:gravity="center"
         android:paddingTop="@dimen/dp_6_x"
-        android:paddingRight="@dimen/dp_12_x"
         android:paddingBottom="@dimen/dp_6_x"/>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bt_wwa_item"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="configure"
+        android:layout_marginRight="@dimen/dp_12_x"
+        android:layout_marginTop="@dimen/dp_6_x"
+        android:layout_marginBottom="@dimen/dp_6_x"
+        android:layout_marginLeft="@dimen/dp_12_x"/>
 </LinearLayout>

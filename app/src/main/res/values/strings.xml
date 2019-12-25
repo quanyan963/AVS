@@ -18,19 +18,21 @@
     <string name="share_wwa">rb_main_wwa</string>
 
     //avs
-    <string name="setting_avs_wifi_connection">Setting AVS Wifi connection</string>
-    <string name="avs_hint">You should configure the AVS network first. \nThen try to refresh this list.\n\nIf you have already completed configuration,please change wifi to an already configured network.\nThen try to refresh this list.</string>
+    <string name="setting_avs_wifi_connection">Configure AVS to connect Wifi</string>
+    <string name="avs_wifi_hint">You should configure the AVS network first.</string>
+    <string name="avs_config_hint">If you have already completed configuration,please change wifi to an already configured network.\nThen try to refresh this list.</string>
     <string name="error">ERROR</string>
     <string name="author_success">Author Successful</string>
     <string name="close">Close</string>
     <string name="remember_and_copy">Remember the code and copy it</string>
     <string name="bind_device">Bind Device</string>
     <string name="net_unavailable">Network unavailable,please use configured NetWork.</string>
+    <string name="avs_success">AVS configure is successful</string>
 
     //wwa
     <string name="menu_item_about">About App</string>
     <string name="about_app_version">App Version: %s</string>
-    <string name="about_esptouch_version">EspTouch Version: %s</string>
+    <string name="about_esptouch_version">WWA Version: %s</string>
     <string name="ssid_title">SSID: </string>
     <string name="bssid_title">BSSID: </string>
     <string name="password_title">Password: </string>
@@ -41,16 +43,18 @@
     <string name="wifi_5g_message">Device don\'t support 5G Wifi, please make sure the currently connected Wifi is 2.4G</string>
     <string name="location_disable_message">Location(GPS) is disable</string>
     <string name="no_wifi_connection">No Wifi connection</string>
-    <string name="configuring_message">Esptouch is configuring, please wait for a moment…</string>
+    <string name="configuring_message">WWA is configuring, please wait for a moment…</string>
     <string name="configure_wifi_change_message">Wifi disconnected or changed</string>
-    <string name="configure_result_failed">EspTouch failed</string>
-    <string name="configure_result_failed_port">Create Esptouch task failed, the EspTouch port could be used by other thread</string>
-    <string name="configure_result_success">EspTouch 完成</string>
+    <string name="configure_result_failed">WWA failed</string>
+    <string name="configure_result_failed_port">Create WWA task failed, the WWA port could be used by other thread</string>
+    <string name="configure_result_success">WWA 完成</string>
     <string name="configure_result_success_item">BSSID = %1$s, InetAddress = %2$s</string>
     <string name="start_conn_wwa">start connecting to WWA</string>
     <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
-    <string name="avs_success">AVS configure is successful</string>
+
     <string name="nothing">Nothing to find.</string>
+    <string name="g_amp_y_co_ltd"><![CDATA[G & Y Co.Ltd]]></string>
+    <string name="avs_device_lists">AVS Device Lists</string>
 
 
 </resources>

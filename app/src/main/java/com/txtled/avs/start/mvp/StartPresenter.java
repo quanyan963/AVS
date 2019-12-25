@@ -1,6 +1,5 @@
 package com.txtled.avs.start.mvp;
 
-import com.txtled.avs.R;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.model.DataManagerModel;
 

@@ -7,8 +7,6 @@ import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import androidx.core.app.ActivityOptionsCompat;
-
 import com.txtled.avs.R;
 import com.txtled.avs.base.MvpBaseActivity;
 import com.txtled.avs.main.MainActivity;
@@ -17,6 +15,7 @@ import com.txtled.avs.start.mvp.StartPresenter;
 import com.txtled.avs.utils.Utils;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static com.txtled.avs.utils.Constants.RB_ID;
 
@@ -30,6 +29,10 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
     RadioButton rbMainWwa;
     @BindView(R.id.rg_start_check)
     RadioGroup rgStartCheck;
+    @BindView(R.id.rb_main_avs_img)
+    RadioButton rbMainAvsImg;
+    @BindView(R.id.rb_main_wwa_img)
+    RadioButton rbMainWwaImg;
 
     @Override
     public void setInject() {
@@ -41,6 +44,8 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
         //rgStartCheck.setOnCheckedChangeListener(this);
         rbMainAvs.setOnClickListener(this);
         rbMainWwa.setOnClickListener(this);
+        rbMainAvsImg.setOnClickListener(this);
+        rbMainWwaImg.setOnClickListener(this);
     }
 
     @Override
@@ -51,20 +56,29 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
     @Override
     protected void onResume() {
         super.onResume();
+        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(Utils.changeSVGColor(
+                R.drawable.avs, R.color.black, this),
+                null, null, null);
+        rbMainAvs.setTextColor(getResources().getColor(R.color.black));
+        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(Utils.changeSVGColor(
+                R.drawable.wwa, R.color.black, this),
+                null, null, null);
+        rbMainWwa.setTextColor(getResources().getColor(R.color.black));
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return onExitActivity(keyCode,event);
+        return onExitActivity(keyCode, event);
     }
 
     @Override
     public void onClick(View v) {
-        Intent intent = new Intent(this,MainActivity.class);
-        intent.putExtra(RB_ID,v.getId());
+        Intent intent = new Intent(this, MainActivity.class);
         //Bundle bundle;
-        switch (v.getId()){
+        switch (v.getId()) {
+            case R.id.rb_main_avs_img:
             case R.id.rb_main_avs:
+                intent.putExtra(RB_ID, R.id.rb_main_avs);
                 rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(Utils.changeSVGColor(
                         R.drawable.avs, R.color.colorAccent, this),
                         null, null, null);
@@ -73,7 +87,9 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
 //                        ,getString(R.string.share_avs)).toBundle();
                 startActivity(intent);
                 break;
+            case R.id.rb_main_wwa_img:
             case R.id.rb_main_wwa:
+                intent.putExtra(RB_ID, R.id.rb_main_wwa);
                 rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(Utils.changeSVGColor(
                         R.drawable.wwa, R.color.colorAccent, this),
                         null, null, null);
@@ -83,5 +99,12 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
                 startActivity(intent);
                 break;
         }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // TODO: add setContentView(...) invocation
+        ButterKnife.bind(this);
     }
 }
