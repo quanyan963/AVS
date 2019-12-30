@@ -33,7 +33,7 @@
             android:paddingTop="@dimen/dp_4_x"
             android:paddingBottom="@dimen/dp_4_x"
             android:paddingLeft="@dimen/dp_4_x"
-            android:background="?android:attr/selectableItemBackground"/>
+            android:background="?android:attr/selectableItemBackgroundBorderless"/>
 
         <TextView
             android:visibility="gone"

@@ -3,6 +3,7 @@ package com.txtled.avs.bean;
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.Index;
 
 import java.io.Serializable;
 
@@ -10,7 +11,9 @@ import java.io.Serializable;
  * Created by Mr.Quan on 2019/12/24.
  */
 
-@Entity
+@Entity(
+        indexes = {@Index(value = "ip DESC", unique = true)}
+)
 public class WWADeviceInfo implements Serializable {
     static final long serialVersionUID = 42L;
 

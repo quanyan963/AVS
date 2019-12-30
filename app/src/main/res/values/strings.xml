@@ -16,6 +16,7 @@
     <string name="wwa_setting">WWA Setting</string>
     <string name="share_avs">rb_main_avs</string>
     <string name="share_wwa">rb_main_wwa</string>
+    <string name="g_amp_y_co_ltd"><![CDATA[G & Y Co.Ltd]]></string>
 
     //avs
     <string name="setting_avs_wifi_connection">Configure AVS to connect Wifi</string>
@@ -28,6 +29,7 @@
     <string name="bind_device">Bind Device</string>
     <string name="net_unavailable">Network unavailable,please use configured NetWork.</string>
     <string name="avs_success">AVS configure is successful</string>
+    <string name="avs_device_lists">AVS Device Lists</string>
 
     //wwa
     <string name="menu_item_about">About App</string>
@@ -53,8 +55,8 @@
     <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
 
     <string name="nothing">Nothing to find.</string>
-    <string name="g_amp_y_co_ltd"><![CDATA[G & Y Co.Ltd]]></string>
-    <string name="avs_device_lists">AVS Device Lists</string>
+    <string name="wwa_device_lists">WWA Device Lists</string>
+    <string name="configure">bind device</string>
 
 
 </resources>

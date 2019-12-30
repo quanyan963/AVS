@@ -9,4 +9,8 @@ public interface PreferencesHelper {
     boolean isConfigured();
 
     void setIsConfigured(boolean configured);
+
+    void setUserId(String userId);
+
+    String getUserId();
 }

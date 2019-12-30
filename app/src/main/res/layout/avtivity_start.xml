@@ -32,7 +32,10 @@
             android:drawablePadding="@dimen/dp_22_x"
             android:drawableLeft="@drawable/avs"
             android:transitionName="@string/share_avs"
-            android:padding="@dimen/dp_12_x"
+            android:paddingTop="@dimen/dp_12_x"
+            android:paddingBottom="@dimen/dp_12_x"
+            android:paddingRight="@dimen/dp_70_x"
+            android:paddingLeft="@dimen/dp_70_x"
             android:text="@string/avs_setting"/>
 
         <RadioButton
@@ -51,7 +54,10 @@
             android:drawableLeft="@drawable/wwa"
             android:transitionName="@string/share_wwa"
             android:drawablePadding="@dimen/dp_16_x"
-            android:padding="@dimen/dp_12_x"
+            android:paddingTop="@dimen/dp_12_x"
+            android:paddingBottom="@dimen/dp_12_x"
+            android:paddingRight="@dimen/dp_70_x"
+            android:paddingLeft="@dimen/dp_70_x"
             android:text="@string/wwa_setting"/>
         <RadioButton
             style="@style/nav_rb"

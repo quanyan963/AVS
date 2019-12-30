@@ -144,11 +144,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background_white"
+        android:layout_margin="@dimen/dp_12_x"
         android:visibility="gone">
         <TextView
             android:id="@+id/tv_wwa_devices"
             style="@style/main_tv"
-            android:text="WWA device list"
+            android:text="@string/wwa_device_lists"
             android:layout_centerHorizontal="true"
             android:padding="@dimen/dp_6_x"/>
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout

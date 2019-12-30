@@ -60,9 +60,9 @@ import io.reactivex.schedulers.Schedulers;
 import static android.content.Context.WIFI_SERVICE;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
-import static com.txtled.avs.utils.Constants.ACCESS_KEY;
 import static com.txtled.avs.utils.Constants.DISCOVERY;
-import static com.txtled.avs.utils.Constants.SECRET_ACCESS_KEY;
+import static com.txtled.avs.utils.ForUse.ACCESS_KEY;
+import static com.txtled.avs.utils.ForUse.SECRET_ACCESS_KEY;
 
 /**
  * Created by Mr.Quan on 2019/12/10.
@@ -210,7 +210,8 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                             deviceInfo.optString("host"),
                             deviceInfo.optString("port"),
                             deviceInfo.optString("cid"),
-                            deviceInfo.optString("thing"));
+                            deviceInfo.optString("thing")
+                    );
                     refreshData.add(info);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -219,6 +220,19 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             });
             udpBuild.sendMessage(DISCOVERY);
         }
+    }
+
+    private void setTime() {
+        if (timeCount != null){
+            timeCount.dispose();
+        }
+        timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
+                            view.setData(refreshData);
+                            mDataManagerModel.insertWWAInfo(refreshData);
+                            udpBuild.stopUDPSocket();
+                        }
+                );
     }
 
     @Override
@@ -262,44 +276,42 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     }
 
     @Override
-    public void createThing() {
-        addSubscribe(Flowable.create(new FlowableOnSubscribe<CreateKeysAndCertificateResult>() {
-                    @Override
-                    public void subscribe(FlowableEmitter<CreateKeysAndCertificateResult> e) throws Exception {
-                        //创建事物
-                        CreateThingResult result = awsIot.createThing(new CreateThingRequest()
-                                .withThingName("fff"));
-                        Utils.Logger(TAG, "CreateThingResult:", "\nthingArn:" + result.getThingArn()
-                                + "\nname:" + result.getThingName() + "\nid:" + result.getThingId());
-                        //创建证书
-                        CreateKeysAndCertificateResult request = awsIot
-                                .createKeysAndCertificate(new CreateKeysAndCertificateRequest()
-                                        .withSetAsActive(true));
-                        //关联证书
-                        AttachThingPrincipalResult thingResult = awsIot.attachThingPrincipal(new AttachThingPrincipalRequest()
-                                .withThingName(result.getThingName())
-                                .withPrincipal(request.getCertificateArn()));
-                        //证书附加策略
+    public void createThing(int position) {
+        addSubscribe(Flowable.create((FlowableOnSubscribe<CreateKeysAndCertificateResult>) e -> {
+            //创建事物
+            CreateThingResult result = awsIot.createThing(new CreateThingRequest()
+                    .withThingName("fff"));
+            Utils.Logger(TAG, "CreateThingResult:", "\nthingArn:" + result.getThingArn()
+                    + "\nname:" + result.getThingName() + "\nid:" + result.getThingId());
+            //创建证书
+            CreateKeysAndCertificateResult request = awsIot
+                    .createKeysAndCertificate(new CreateKeysAndCertificateRequest()
+                            .withSetAsActive(true));
+            //关联证书
+            AttachThingPrincipalResult thingResult = awsIot.attachThingPrincipal(
+                    new AttachThingPrincipalRequest()
+                    .withThingName(result.getThingName())
+                    .withPrincipal(request.getCertificateArn()));
+            //证书附加策略
 //                    awsIot.attachPrincipalPolicy(new AttachPrincipalPolicyRequest()
 //                            .withPolicyName(request.getCertificateId())
 //                            .withPrincipal(request.getCertificateArn()));
-                        //创建策略，以下是默认策略文档
-                        try {
-                            CreatePolicyRequest policyRequest = new CreatePolicyRequest();
-                            policyRequest.setPolicyName(Constants.MY_OIT_CE);
-                            policyRequest.setPolicyDocument(Constants.POLICY_JSON);
-                            awsIot.createPolicy(policyRequest);
-                        } catch (Exception e1) {
+            //创建策略，以下是默认策略文档
+            try {
+                CreatePolicyRequest policyRequest = new CreatePolicyRequest();
+                policyRequest.setPolicyName(Constants.MY_OIT_CE);
+                policyRequest.setPolicyDocument(Constants.POLICY_JSON);
+                awsIot.createPolicy(policyRequest);
+            } catch (Exception e1) {
 
-                        }
+            }
 
-                        awsIot.attachPolicy(new AttachPolicyRequest()
-                                .withPolicyName(Constants.MY_OIT_CE)
-                                .withTarget(request.getCertificateArn()));
-                        e.onNext(request);
+            awsIot.attachPolicy(new AttachPolicyRequest()
+                    .withPolicyName(Constants.MY_OIT_CE)
+                    .withTarget(request.getCertificateArn()));
+            e.onNext(request);
 
-                    }
-                },
+        },
                 BackpressureStrategy.BUFFER).compose(RxUtil.rxSchedulerHelper())
                 .subscribeWith(new CommonSubscriber<CreateKeysAndCertificateResult>(view) {
             @Override
@@ -309,6 +321,9 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 //                        +"\nCertificatePem:"+createThingResult.getCertificatePem()
 //                        +"\nPrivateKey:"+createThingResult.getKeyPair().getPrivateKey()
 //                        +"\nPublicKey:"+createThingResult.getKeyPair().getPublicKey());
+                //refreshData.get(position).setConfigure(true);
+                //mDataManagerModel.upDataWWAInfo(refreshData.get(position));
+                view.createSuccess();
                 Utils.Logger(TAG,"AttachThingPrincipalResult",createThingResult.toString());
 
             }
@@ -334,19 +349,6 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             //LOGGER.error("IotServiceUtil.createIotService aws-iot创建连接异常",e);
             awsIot = null;
         }
-    }
-
-    private void setTime() {
-        if (timeCount != null){
-            timeCount.dispose();
-        }
-        timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
-                    view.setData(refreshData);
-                    mDataManagerModel.insertWWAInfo(refreshData);
-                    udpBuild.stopUDPSocket();
-                }
-                );
     }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {

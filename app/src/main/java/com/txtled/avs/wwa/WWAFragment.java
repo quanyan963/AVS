@@ -39,6 +39,7 @@ import com.txtled.avs.base.MvpBaseFragment;
 import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.main.MainActivity;
 import com.txtled.avs.utils.Utils;
+import com.txtled.avs.widget.DividerItemDecoration;
 import com.txtled.avs.wwa.mvp.WWAContract;
 import com.txtled.avs.wwa.mvp.WWAPresenter;
 
@@ -115,6 +116,10 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
         rlvWwaDevice.setHasFixedSize(true);
         rlvWwaDevice.setLayoutManager(new LinearLayoutManager(getContext()));
+        rlvWwaDevice.addItemDecoration(new DividerItemDecoration(getContext(),
+                DividerItemDecoration.HORIZONTAL_LIST, getContext().getResources()
+                .getDimensionPixelSize(R.dimen.dp_6_y),
+                getContext().getResources().getColor(R.color.colorPrimary)));
         srlWwaDevices.setOnRefreshListener(this);
         data = new ArrayList<>();
         adapter = new WWAAdapter(data, getContext());
@@ -163,7 +168,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void confirm() {
         presenter.setConfigured(false);
-        ((MainActivity) getActivity()).removeNavigationIcon();
+        ((MainActivity) getActivity()).isShowRightImg(false);
         byte[] ssid = mApSsidTV.getTag() == null ? ByteUtil.getBytesByString(mApSsidTV.getText().toString())
                 : (byte[]) mApSsidTV.getTag();
         byte[] password = ByteUtil.getBytesByString(mApPasswordET.getText().toString());
@@ -267,6 +272,11 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     }
 
     @Override
+    public void createSuccess() {
+
+    }
+
+    @Override
     public void onClick(View v) {
         presenter.onViewClick(v.getId());
     }
@@ -277,9 +287,14 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         rlSettingPage.setVisibility(View.GONE);
         rlWwaDevice.setVisibility(View.VISIBLE);
         presenter.setConfigured(true);
-        ((MainActivity) getActivity()).setNavigationIcon(false);
+        ((MainActivity) getActivity()).isShowRightImg(true);
         srlWwaDevices.setRefreshing(true);
-        presenter.onRefresh();
+        try {
+            Thread.sleep(2000);
+            presenter.onRefresh();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     //刷新
@@ -292,7 +307,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     //配置iot core
     @Override
     public void onWWAClick(int position) {
-
+        //presenter.createThing(position);
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {

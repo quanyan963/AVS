@@ -83,6 +83,16 @@ public class DataManagerModel implements DBHelper, PreferencesHelper, NetHelper,
     }
 
     @Override
+    public void setUserId(String userId) {
+        mPreferencesHelper.setUserId(userId);
+    }
+
+    @Override
+    public String getUserId() {
+        return mPreferencesHelper.getUserId();
+    }
+
+    @Override
     public void insertWWAInfo(List<WWADeviceInfo> infoList) {
         mDBDbHelper.insertWWAInfo(infoList);
     }

@@ -16,8 +16,13 @@ import com.amazon.identity.auth.device.api.authorization.AuthorizationManager;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeListener;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeRequest;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeResult;
+import com.amazon.identity.auth.device.api.authorization.ProfileScope;
 import com.amazon.identity.auth.device.api.authorization.ScopeFactory;
 import com.amazon.identity.auth.device.api.workflow.RequestContext;
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
+import com.amazonaws.regions.Regions;
+import com.txtled.avs.application.MyApplication;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.DeviceProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.ProvisioningClient;
@@ -37,6 +42,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -75,6 +82,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     private Disposable writeDisposable;
     private String mCode;
     private String address;
+    private CognitoCachingCredentialsProvider provider;
 
 
     @Inject
@@ -115,10 +123,19 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         mdnser = new Mdnser(activity);
         mdnser.initializeDiscoveryListener();
         view.initAdapter(mdnser.ipInfos);
+
+        //getCognito
+        provider = MyApplication.getCredentialsProvider();
     }
 
     @Override
     public void onItemClick(int position) {
+//        AuthorizationManager.authorize(
+//                new AuthorizeRequest.Builder(mRequestContext)
+//                        .addScopes(ProfileScope.profile())
+//                        .build()
+//        );
+
         final String url = "http://" + mdnser.ipInfos.get(position).getHostip();
         address = mdnser.ipInfos.get(position).getHostip();
         mProvisioningClient.setEndpoint(url);
@@ -350,6 +367,25 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             final String redirectUri = authorizeResult.getRedirectURI();
             final String clientId = authorizeResult.getClientId();
             final String sessionId = mDeviceProvisioningInfo.getSessionId();
+            //Utils.Logger(TAG,"userId:",authorizeResult.getUser().getUserId());
+            String token = authorizeResult.getAccessToken();
+
+            //authorizeResult.getUser().getUserId();
+            if (null != token) {
+
+                /* 用户已登录，联合登录Cognito*/
+                Map<String, String> logins = new HashMap<String, String>();
+                logins.put("www.amazon.com", token);
+                provider.setLogins(logins);
+                //getIdentity();
+            } else {
+
+                /* The user is not signed in */
+
+            }
+
+
+            //mDataManagerModel.setUserId(authorizeResult.getUser().getUserId());
 
             final CompanionProvisioningInfo companionProvisioningInfo = new CompanionProvisioningInfo(sessionId, clientId, redirectUri, authorizationCode);
 

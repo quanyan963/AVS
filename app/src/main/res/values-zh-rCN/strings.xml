@@ -54,7 +54,8 @@
     <string name="start_conn_wwa">开始连接至WWA</string>
     <string name="no_wifi_conn">您还没有连接任何网络</string>
     <string name="nothing">没发现任何设备。</string>
-
+    <string name="wwa_device_lists">WWA 设备列表</string>
+    <string name="configure">绑定设备</string>
 
 
 </resources>

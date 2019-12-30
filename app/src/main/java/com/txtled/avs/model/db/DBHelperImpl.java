@@ -34,7 +34,7 @@ public class DBHelperImpl implements DBHelper {
 
     @Override
     public void insertWWAInfo(List<WWADeviceInfo> infoList) {
-        mDaoSession.getWWADeviceInfoDao().insertInTx(infoList);
+        mDaoSession.getWWADeviceInfoDao().insertOrReplaceInTx(infoList);
     }
 
     @Override

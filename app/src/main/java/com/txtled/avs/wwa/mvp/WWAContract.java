@@ -41,6 +41,8 @@ public interface WWAContract {
         void setData(ArrayList<WWADeviceInfo> strReceive);
 
         void closeRefresh();
+
+        void createSuccess();
     }
     interface Presenter extends BasePresenter<View>{
 
@@ -68,6 +70,6 @@ public interface WWAContract {
 
         AWSIot getAmazonIotService();
 
-        void createThing();
+        void createThing(int position);
     }
 }
