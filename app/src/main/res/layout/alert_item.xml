@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_alert_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/dp_12_x"
+        android:hint="@string/give_a_friendly_name">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/alert_wwa_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"/>
+    </com.google.android.material.textfield.TextInputLayout>
+    <TextView
+        android:id="@+id/tv_alert_create"
+        style="@style/main_tv"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/til_alert_input"
+        android:layout_marginLeft="@dimen/dp_12_x"
+        android:layout_marginBottom="@dimen/dp_12_x"
+        android:hint="@string/wake_up_hint"/>
+</RelativeLayout>

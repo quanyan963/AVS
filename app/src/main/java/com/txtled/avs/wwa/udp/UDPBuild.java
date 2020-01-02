@@ -131,7 +131,7 @@ public class UDPBuild {
                 continue;
             }
             String strReceive = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            if (!strReceive.contains(DISCOVERY)){//!receivePacket.getAddress().getHostAddress().contains(selfIp)
+            if (!strReceive.contains("discovery")){//!receivePacket.getAddress().getHostAddress().contains(selfIp)
                 Utils.Logger(TAG,"UDPdata:",strReceive + " from " + receivePacket
                         .getAddress().getHostAddress() + ":" + receivePacket.getPort());
 

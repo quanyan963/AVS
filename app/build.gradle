@@ -6,7 +6,7 @@ android {
     buildToolsVersion "29.0.1"
     defaultConfig {
         applicationId "com.txtled.avs"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 26
         versionCode 1
         versionName "1.0.1"
@@ -95,10 +95,22 @@ dependencies {
 
     //ddb
     implementation 'com.amazonaws:aws-android-sdk-ddb:2.+'
+    implementation 'com.amazonaws:aws-android-sdk-ddb-mapper:2.+'
 
     //cognito
     implementation 'com.amazonaws:aws-android-sdk-cognito:2.+'
     implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.+'
+
+    // Mobile Client for initializing the SDK
+    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.7.+@aar') { transitive = true }
+
+    // Cognito UserPools for SignIn
+    implementation 'com.android.support:support-v4:29.+'
+    implementation ('com.amazonaws:aws-android-sdk-auth-userpools:2.7.+@aar') { transitive = true }
+
+    // Sign in UI Library
+    implementation 'com.android.support:appcompat-v7:29.+'
+    implementation ('com.amazonaws:aws-android-sdk-auth-ui:2.7.+@aar') { transitive = true }
 
     //jwt
 //    api 'io.jsonwebtoken:jjwt-api:0.10.7'

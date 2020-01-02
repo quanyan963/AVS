@@ -13,6 +13,7 @@ import com.txtled.avs.base.BasePresenter;
 import com.txtled.avs.base.BaseView;
 import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.wwa.WWAFragment;
+import com.txtled.avs.wwa.listener.OnCreateThingListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,12 +65,10 @@ public interface WWAContract {
 
         void onRefresh();
 
-        void insertInfo(List<IEsptouchResult> data);
-
         void hasData();
 
         AWSIot getAmazonIotService();
 
-        void createThing(int position);
+        void createThing(int position, String friendlyName, OnCreateThingListener listener);
     }
 }

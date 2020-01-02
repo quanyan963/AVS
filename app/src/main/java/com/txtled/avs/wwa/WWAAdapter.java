@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.txtled.avs.R;
 import com.txtled.avs.bean.WWADeviceInfo;
 
@@ -45,7 +46,7 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     public void onBindViewHolder(@NonNull WWAViewHolder holder, final int position) {
         if (mData != null) {
             holder.tvWwaItem.setText(mData.get(position).getIp());
-            holder.itemView.setOnClickListener(v -> listener.onWWAClick(position));
+            holder.btWwaItem.setOnClickListener(v -> listener.onWWAClick(position));
         }
     }
 
@@ -61,6 +62,8 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     public class WWAViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.tv_wwa_item)
         TextView tvWwaItem;
+        @BindView(R.id.bt_wwa_item)
+        MaterialButton btWwaItem;
 
         public WWAViewHolder(@NonNull View itemView) {
             super(itemView);

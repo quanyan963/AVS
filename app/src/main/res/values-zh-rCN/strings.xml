@@ -56,6 +56,13 @@
     <string name="nothing">没发现任何设备。</string>
     <string name="wwa_device_lists">WWA 设备列表</string>
     <string name="configure">绑定设备</string>
+    <string name="ok">确认</string>
+    <string name="cancel">取消</string>
+    <string name="give_a_friendly_name">给设备起个名字</string>
+    <string name="wake_up_hint">你将使用此名称唤醒设备。</string>
+    <string name="hint_create_thing">正在创建事物…</string>
+    <string name="associating_database">正在关联数据库…</string>
+    <string name="transmitting_data">正在将数据传送到设备…</string>
 
 
 </resources>

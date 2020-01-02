@@ -53,10 +53,16 @@
     <string name="configure_result_success_item">BSSID = %1$s, InetAddress = %2$s</string>
     <string name="start_conn_wwa">start connecting to WWA</string>
     <string name="no_wifi_conn">You\'re not connected to wifi yet</string>
-
     <string name="nothing">Nothing to find.</string>
     <string name="wwa_device_lists">WWA Device Lists</string>
     <string name="configure">bind device</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="give_a_friendly_name">Give your device a friendly name</string>
+    <string name="wake_up_hint">You will use this name to wake up device.</string>
+    <string name="hint_create_thing">Creating thing…</string>
+    <string name="associating_database">Associating database…</string>
+    <string name="transmitting_data">Transmitting data to device…</string>
 
 
 </resources>

@@ -2,6 +2,7 @@ package com.txtled.avs.di.component;
 
 import android.app.Activity;
 
+import com.txtled.avs.cognito.AuthenticatorActivity;
 import com.txtled.avs.di.module.ActivityModule;
 import com.txtled.avs.di.scope.ActivityScope;
 import com.txtled.avs.main.MainActivity;
@@ -25,4 +26,6 @@ public interface ActivityComponent {
     void inject(MainActivity mainActivity);
 
     void inject(WebViewActivity webViewActivity);
+
+    void inject(AuthenticatorActivity authenticatorActivity);
 }

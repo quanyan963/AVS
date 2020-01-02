@@ -55,6 +55,12 @@
         <activity android:name=".web.WebViewActivity"
             android:configChanges="layoutDirection|locale"
             android:screenOrientation="portrait"/>
+
+        <activity android:name=".cognito.AuthenticatorActivity"
+            android:configChanges="layoutDirection|locale"
+            android:screenOrientation="portrait">
+
+        </activity>
     </application>
 
 </manifest>

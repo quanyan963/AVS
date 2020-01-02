@@ -38,13 +38,11 @@ import com.txtled.avs.R;
 import com.txtled.avs.base.MvpBaseFragment;
 import com.txtled.avs.bean.WWADeviceInfo;
 import com.txtled.avs.main.MainActivity;
+import com.txtled.avs.utils.AlertUtils;
 import com.txtled.avs.utils.Utils;
 import com.txtled.avs.widget.DividerItemDecoration;
 import com.txtled.avs.wwa.mvp.WWAContract;
 import com.txtled.avs.wwa.mvp.WWAPresenter;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -135,7 +133,6 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
         //连接iot
         presenter.getAmazonIotService();
-        //presenter.createThing();
 
     }
 
@@ -289,12 +286,8 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         presenter.setConfigured(true);
         ((MainActivity) getActivity()).isShowRightImg(true);
         srlWwaDevices.setRefreshing(true);
-        try {
-            Thread.sleep(2000);
-            presenter.onRefresh();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        presenter.onRefresh();
+        presenter.hasData();
     }
 
     //刷新
@@ -307,7 +300,9 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     //配置iot core
     @Override
     public void onWWAClick(int position) {
-        //presenter.createThing(position);
+        AlertUtils.showAlertDialog(getContext(), R.layout.alert_item,
+                friendlyName -> presenter.createThing(position,friendlyName,AlertUtils.getThingListener()));
+
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {
