@@ -134,7 +134,6 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         if (count != 0) {
             tvAvsHint.setVisibility(View.GONE);
             rlvAvsList.setAdapter(adapter);
-            presenter.startSocket();
         } else {
             tvAvsHint.setVisibility(View.VISIBLE);
         }

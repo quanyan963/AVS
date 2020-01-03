@@ -53,7 +53,7 @@ public interface WWAContract {
 
         void registerBroadcast();
 
-        void init(Context context);
+        void init(Activity context);
 
         void destroy();
 
@@ -70,5 +70,9 @@ public interface WWAContract {
         AWSIot getAmazonIotService();
 
         void createThing(int position, String friendlyName, OnCreateThingListener listener);
+
+        boolean checkUserHasLogin();
+
+        void onResume();
     }
 }

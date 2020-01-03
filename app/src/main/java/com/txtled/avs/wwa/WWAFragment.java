@@ -129,7 +129,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         mConfirmBtn.setEnabled(false);
         mConfirmBtn.setOnClickListener(this);
         tvRegister.setOnClickListener(this);
-        presenter.init(getContext());
+        presenter.init(getActivity());
 
         //连接iot
         presenter.getAmazonIotService();
@@ -300,9 +300,17 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     //配置iot core
     @Override
     public void onWWAClick(int position) {
-        AlertUtils.showAlertDialog(getContext(), R.layout.alert_item,
-                friendlyName -> presenter.createThing(position,friendlyName,AlertUtils.getThingListener()));
+        if (presenter.checkUserHasLogin()){
+            AlertUtils.showAlertDialog(getContext(), R.layout.alert_item,
+                    friendlyName -> presenter.createThing(
+                            position,friendlyName,AlertUtils.getThingListener()));
+        }
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        presenter.onResume();
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {

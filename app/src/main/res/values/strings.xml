@@ -63,6 +63,8 @@
     <string name="hint_create_thing">Creating thing…</string>
     <string name="associating_database">Associating database…</string>
     <string name="transmitting_data">Transmitting data to device…</string>
+    <string name="transmit_completed">Transmit completed</string>
+    <string name="device_name_used">Device name has been already used.</string>
 
 
 </resources>

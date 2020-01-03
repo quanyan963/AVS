@@ -32,10 +32,12 @@ public class UDPBuild {
     private DatagramPacket receivePacket;
 
     private OnUDPReceiveCallbackBlock udpReceiveCallback;
-    private String broadCastIp;
+    private static String broadCastIp;
+    private String ignoreIp;
 
     //    提供一个全局的静态方法
     public static UDPBuild getUdpBuild(String selfIp) {
+        broadCastIp = selfIp;
         if (udpBuild == null) {
             synchronized (UDPBuild.class) {
                 if (udpBuild == null) {
@@ -44,6 +46,10 @@ public class UDPBuild {
             }
         }
         return udpBuild;
+    }
+
+    public void setIgnoreIp(String ip){
+        ignoreIp = ip;
     }
 
     private UDPBuild(String broadCastIp) {
@@ -131,7 +137,7 @@ public class UDPBuild {
                 continue;
             }
             String strReceive = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            if (!strReceive.contains("discovery")){//!receivePacket.getAddress().getHostAddress().contains(selfIp)
+            if (!receivePacket.getAddress().getHostAddress().contains(ignoreIp)){
                 Utils.Logger(TAG,"UDPdata:",strReceive + " from " + receivePacket
                         .getAddress().getHostAddress() + ":" + receivePacket.getPort());
 

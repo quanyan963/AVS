@@ -296,11 +296,6 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     }
 
     @Override
-    public void startSocket() {
-
-    }
-
-    @Override
     public void destroy() {
         try {
             if (socket != null) {
@@ -385,7 +380,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             }
 
 
-            //mDataManagerModel.setUserId(authorizeResult.getUser().getUserId());
+            mDataManagerModel.setUserId("");
 
             final CompanionProvisioningInfo companionProvisioningInfo = new CompanionProvisioningInfo(sessionId, clientId, redirectUri, authorizationCode);
 

@@ -63,6 +63,8 @@
     <string name="hint_create_thing">正在创建事物…</string>
     <string name="associating_database">正在关联数据库…</string>
     <string name="transmitting_data">正在将数据传送到设备…</string>
+    <string name="transmit_completed">传输完成</string>
+    <string name="device_name_used">设备名已被使用。</string>
 
 
 </resources>

@@ -25,6 +25,7 @@ import com.txtled.avs.wwa.listener.OnCreateThingListener;
 
 public class AlertUtils {
     private static OnCreateThingListener thingListener;
+    private static boolean canClose = false;
 
     public static void showErrorMessage(Context context, int titleRes,
                                         String errorCode, DialogInterface.OnClickListener listener) {
@@ -138,6 +139,7 @@ public class AlertUtils {
 
     public static void showAlertDialog(Context context, int viewId,
                                        OnConfirmClickListener listener) {
+        canClose = false;
         if (!((Activity) context).isFinishing()) {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             View view = layoutInflater.inflate(viewId, null);
@@ -164,6 +166,8 @@ public class AlertUtils {
                     if (!s.toString().trim().isEmpty()){
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
                     }else {
+                        textView.setText("");
+                        textView.setHint(R.string.wake_up_hint);
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                     }
                 }
@@ -173,13 +177,25 @@ public class AlertUtils {
             dialog.show();
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                listener.onConfirmClick(editText.getText().toString());
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                if (canClose){
+                    dialog.dismiss();
+                }else {
+                    //editText.clearFocus();
+                    editText.setFocusable(false);
+                    listener.onConfirmClick(editText.getText().toString());
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                }
             });
             thingListener = new OnCreateThingListener() {
                 @Override
                 public void onStatueChange(int str) {
                     ((Activity) context).runOnUiThread(() -> {
+                        if (str == R.string.device_name_used){
+                            editText.setFocusable(true);
+                            editText.setFocusableInTouchMode(true);
+                            editText.requestFocus();
+
+                        }
                         textView.setText(str);
                         AlphaAnimation animation = new AlphaAnimation(0f, 1f);
                         animation.setDuration(500);
@@ -190,7 +206,10 @@ public class AlertUtils {
 
                 @Override
                 public void dismiss() {
-                    dialog.dismiss();
+                    canClose = true;
+                    ((Activity) context).runOnUiThread(() ->
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true));
+
                 }
             };
         }

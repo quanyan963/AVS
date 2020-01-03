@@ -40,8 +40,6 @@ public interface AVSContract {
 
         void resume();
 
-        void startSocket();
-
         void destroy();
     }
 }
