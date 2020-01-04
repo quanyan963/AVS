@@ -303,7 +303,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         if (presenter.checkUserHasLogin()){
             AlertUtils.showAlertDialog(getContext(), R.layout.alert_item,
                     friendlyName -> presenter.createThing(
-                            position,friendlyName,AlertUtils.getThingListener()));
+                            position, friendlyName, AlertUtils.getThingListener()));
         }
     }
 

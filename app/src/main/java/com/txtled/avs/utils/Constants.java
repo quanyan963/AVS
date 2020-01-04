@@ -40,6 +40,7 @@ public class Constants {
     public static final String SEND_KEY_ONE = "{\"key0\":\"%s\"}";
     public static final String SEND_KEY_TWO = "{\"key1\":\"%s\"}";
     public static final String REBOOT = "{\"reboot\":1}";
+    public static final String REST_API = "a311cdvk7hqtsk-ats.iot.us-east-1.amazonaws.com";
     public static final String POLICY_JSON = "{\n" +
             "  \"Version\": \"2012-10-17\",\n" +
             "  \"Statement\": [\n" +

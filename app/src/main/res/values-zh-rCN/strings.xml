@@ -65,6 +65,7 @@
     <string name="transmitting_data">正在将数据传送到设备…</string>
     <string name="transmit_completed">传输完成</string>
     <string name="device_name_used">设备名已被使用。</string>
+    <string name="contain_hint">只能包含字母大小写及空格</string>
 
 
 </resources>

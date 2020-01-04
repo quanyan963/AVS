@@ -49,6 +49,7 @@ import com.amazonaws.services.iot.model.CreateKeysAndCertificateResult;
 import com.amazonaws.services.iot.model.CreatePolicyRequest;
 import com.amazonaws.services.iot.model.CreateThingRequest;
 import com.amazonaws.services.iot.model.CreateThingResult;
+import com.amazonaws.services.iot.model.KeyPair;
 import com.txtled.avs.R;
 import com.txtled.avs.application.MyApplication;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
@@ -91,6 +92,7 @@ import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiv
 import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.CA;
 import static com.txtled.avs.utils.Constants.REBOOT;
+import static com.txtled.avs.utils.Constants.REST_API;
 import static com.txtled.avs.utils.Constants.SEND_CA_ONE;
 import static com.txtled.avs.utils.Constants.SEND_CA_TWO;
 import static com.txtled.avs.utils.Constants.SEND_CERT_ONE;
@@ -335,8 +337,18 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     @Override
     public void createThing(int position, String friendlyName, OnCreateThingListener listener) {
+
+        String[] values = friendlyName.split(" ");
+        friendlyName = "";
+        for (int i = 0; i < values.length; i++) {
+            if (!values[i].isEmpty()){
+                friendlyName += values[i] + (i == values.length - 1 ? "" : "-");
+            }
+        }
+        String finalRealName = friendlyName;
         addSubscribe(Flowable.create((FlowableOnSubscribe<CreateKeysAndCertificateResult>) e -> {
-                    createIotCore(friendlyName, position, listener);
+
+                    createIotCore(finalRealName, position, listener);
                     CreateKeysAndCertificateResult request = new CreateKeysAndCertificateResult();
                     //写入数据库
                     e.onNext(request);
@@ -396,7 +408,20 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                 String[] names = cert_data.getM().keySet().toArray(new String[cert_data.getM().size()]);
                 for (int i = 0; i < names.length; i++) {
                     if (names[i].equals(friendlyName)){
-                        listener.onStatueChange(R.string.device_name_used);
+                        //listener.onStatueChange(R.string.device_name_used);
+                        //已存在则不创建事物，使用数据库数据
+                        Map<String,AttributeValue> deviceData = cert_data.getM().get(friendlyName).getM();
+
+                        keysAndCertificate = new CreateKeysAndCertificateResult();
+                        iotThing = new CreateThingResult();
+                        keysAndCertificate.withKeyPair(new KeyPair()
+                                .withPrivateKey(deviceData.get("certKey").getS()))
+                                .setCertificatePem(deviceData.get("certPem").getS());
+                        iotThing.withThingName(userId+"_"+friendlyName)
+                                .withThingId(deviceData.get("thingId").getS())
+                                .setThingArn(deviceData.get("thingArn").getS());
+                        //写入设备
+                        writeToDevice(position, listener);
                         return;
                     }
                 }
@@ -455,11 +480,15 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         }
 
         //写入设备
+        writeToDevice(position, listener);
+    }
+
+    private void writeToDevice(int position, OnCreateThingListener listener) {
         listener.onStatueChange(R.string.transmitting_data);
 
         broadCast = refreshData.get(position).getIp();
-        udpSend(String.format(SEND_THING_NAME, iotThing.getThingName(), userId,
-                friendlyName), result -> {
+        udpSend(String.format(SEND_THING_NAME, REST_API, userId,
+                iotThing.getThingName()), result -> {
             if (result.contains("\"ca0\"")){
                 udpBuild.sendMessage(result.contains("1") ?
                         String.format(SEND_CA_TWO,CA.substring(CA.length()/2)) :
@@ -507,9 +536,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             } else {
                 udpBuild.sendMessage(result.contains("1") ?
                         String.format(SEND_CA_ONE,CA.substring(0,CA.length()/2)) :
-                        String.format(SEND_THING_NAME,
-                        iotThing.getThingName(), userId,
-                        friendlyName));
+                        String.format(SEND_THING_NAME, REST_API, userId, iotThing.getThingName()));
             }
         });
     }
@@ -559,8 +586,8 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             , CreateThingResult iotThing){
         HashMap<String, AttributeValue> cert = new HashMap<>();
         //cert.put("certId", new AttributeValue().withS(keysAndCertificate.getCertificateId()));
-        //cert.put("certKey", new AttributeValue().withS(keysAndCertificate.getKeyPair().getPrivateKey()));
-        //cert.put("certPem", new AttributeValue().withS(keysAndCertificate.getCertificatePem()));
+        cert.put("certKey", new AttributeValue().withS(keysAndCertificate.getKeyPair().getPrivateKey()));
+        cert.put("certPem", new AttributeValue().withS(keysAndCertificate.getCertificatePem()));
         //cert.put("certArn", new AttributeValue().withS(keysAndCertificate.getCertificateArn()));
         cert.put("thingArn", new AttributeValue().withS(iotThing.getThingArn()));
         cert.put("thingId", new AttributeValue().withS(iotThing.getThingId()));

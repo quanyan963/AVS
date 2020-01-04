@@ -65,6 +65,7 @@
     <string name="transmitting_data">Transmitting data to device…</string>
     <string name="transmit_completed">Transmit completed</string>
     <string name="device_name_used">Device name has been already used.</string>
+    <string name="contain_hint">Contain only A-Za-z and Spaces</string>
 
 
 </resources>

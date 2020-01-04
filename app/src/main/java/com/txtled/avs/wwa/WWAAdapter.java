@@ -45,7 +45,13 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull WWAViewHolder holder, final int position) {
         if (mData != null) {
-            holder.tvWwaItem.setText(mData.get(position).getIp());
+            if (mData.get(position).getThing().isEmpty()){
+                holder.tvWwaItem.setText(mData.get(position).getIp());
+            }else {
+                holder.tvWwaItem.setText(mData.get(position).getThing()
+                        .split("_")[1].replace("-"," "));
+            }
+
             holder.btWwaItem.setOnClickListener(v -> listener.onWWAClick(position));
         }
     }
