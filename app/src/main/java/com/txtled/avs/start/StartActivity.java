@@ -46,6 +46,7 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
         rbMainWwa.setOnClickListener(this);
         rbMainAvsImg.setOnClickListener(this);
         rbMainWwaImg.setOnClickListener(this);
+        presenter.initUid();
     }
 
     @Override

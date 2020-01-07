@@ -163,10 +163,18 @@ public class AlertUtils {
 
                 @Override
                 public void afterTextChanged(Editable s) {
+                    textView.setText("");
                     if (!s.toString().trim().isEmpty()){
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        if (!s.toString().matches("^[[A-Za-z]|\\s]+$")){
+                            textView.setHint(R.string.contain_hint);
+                            //setAlphaAnimation(textView);
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                        }else {
+                            textView.setHint(R.string.wake_up_hint);
+                            //setAlphaAnimation(textView);
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        }
                     }else {
-                        textView.setText("");
                         textView.setHint(R.string.wake_up_hint);
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                     }
@@ -182,8 +190,12 @@ public class AlertUtils {
                 }else {
                     //editText.clearFocus();
                     editText.setFocusable(false);
-                    listener.onConfirmClick(editText.getText().toString());
+                    listener.onConfirmClick(editText.getText().toString().trim());
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
+                    Utils.hideSoftKeyboard(context,editText);
+                    dialog.setCancelable(false);
+
                 }
             });
             thingListener = new OnCreateThingListener() {
@@ -197,21 +209,42 @@ public class AlertUtils {
 
                         }
                         textView.setText(str);
-                        AlphaAnimation animation = new AlphaAnimation(0f, 1f);
-                        animation.setDuration(500);
-                        textView.setAnimation(animation);
-                        animation.start();
+                        setAlphaAnimation(textView);
                     });
                 }
 
                 @Override
                 public void dismiss() {
                     canClose = true;
-                    ((Activity) context).runOnUiThread(() ->
-                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true));
+                    ((Activity) context).runOnUiThread(() -> {
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);
+                        dialog.setCancelable(true);
+                    });
 
                 }
             };
+        }
+    }
+
+    private static void setAlphaAnimation(View view){
+        AlphaAnimation animation = new AlphaAnimation(0f, 1f);
+        animation.setDuration(500);
+        view.setAnimation(animation);
+        animation.start();
+    }
+
+    public static AlertDialog showLoadingDialog(Context context, int viewId){
+        if (!((Activity) context).isFinishing()) {
+            LayoutInflater layoutInflater = LayoutInflater.from(context);
+            View view = layoutInflater.inflate(viewId, null);
+            AlertDialog dialog = new AlertDialog.Builder(context, R.style.TransparentDialog)
+                    .setView(view)
+                    .create();
+            dialog.setCancelable(false);
+            return dialog;
+        }else {
+            return null;
         }
     }
 

@@ -8,6 +8,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
@@ -94,5 +96,16 @@ public class Utils {
         if (!isLog)
             return;
         Log.i(TAG, type + ":------" + value);
+    }
+
+    /**
+     * 隐藏软键盘(可用于Activity，Fragment)
+     */
+    public static void hideSoftKeyboard(Context context, View view) {
+        if (view == null) return;
+
+        InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+
     }
 }

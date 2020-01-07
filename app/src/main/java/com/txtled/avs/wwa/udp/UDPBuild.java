@@ -32,16 +32,17 @@ public class UDPBuild {
     private DatagramPacket receivePacket;
 
     private OnUDPReceiveCallbackBlock udpReceiveCallback;
-    private static String broadCastIp;
+    //private static String broadCastIp;
     private String ignoreIp;
 
     //    提供一个全局的静态方法
-    public static UDPBuild getUdpBuild(String selfIp) {
-        broadCastIp = selfIp;
+    public static UDPBuild getUdpBuild() {
+//        broadCastIp = null;
+//        broadCastIp = selfIp;
         if (udpBuild == null) {
             synchronized (UDPBuild.class) {
                 if (udpBuild == null) {
-                    udpBuild = new UDPBuild(selfIp);
+                    udpBuild = new UDPBuild();
                 }
             }
         }
@@ -52,9 +53,9 @@ public class UDPBuild {
         ignoreIp = ip;
     }
 
-    private UDPBuild(String broadCastIp) {
+    private UDPBuild() {
         super();
-        this.broadCastIp = broadCastIp;
+        //this.broadCastIp = broadCastIp;
         int cpuNumbers = Runtime.getRuntime().availableProcessors();
 //        根据CPU数目初始化线程池
         mThreadPool = Executors.newFixedThreadPool(cpuNumbers * POOL_SIZE);
@@ -89,7 +90,7 @@ public class UDPBuild {
     /**
      * 发送信息
      **/
-    public void sendMessage(final String message) {
+    public void sendMessage(final String message, String broadCastIp) {
         if (client == null) {
             startUDPSocket();
         }

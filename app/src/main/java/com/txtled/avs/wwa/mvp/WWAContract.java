@@ -44,6 +44,14 @@ public interface WWAContract {
         void closeRefresh();
 
         void createSuccess();
+
+        void setUserId(String value);
+
+        void updateAdapter(int position, ArrayList<WWADeviceInfo> newNames);
+
+        void showLoadingView();
+
+        void hidLoadingView();
     }
     interface Presenter extends BasePresenter<View>{
 
@@ -74,5 +82,7 @@ public interface WWAContract {
         boolean checkUserHasLogin();
 
         void onResume();
+
+        String geUserId();
     }
 }

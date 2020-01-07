@@ -17,6 +17,7 @@ public class PreferencesHelperImpl implements PreferencesHelper {
     private SharedPreferences mSharedPreferences;
     public static final String IS_CONFIGURED = "is_configured";
     public static final String USER_ID = "user_id";
+    public static final String UID = "uid";
 
     @Inject
     public PreferencesHelperImpl() {
@@ -42,5 +43,15 @@ public class PreferencesHelperImpl implements PreferencesHelper {
     @Override
     public String getUserId() {
         return mSharedPreferences.getString(USER_ID,"");
+    }
+
+    @Override
+    public void setUid(String uid) {
+        mSharedPreferences.edit().putString(UID,uid).apply();
+    }
+
+    @Override
+    public String getUid() {
+        return mSharedPreferences.getString(UID,"");
     }
 }

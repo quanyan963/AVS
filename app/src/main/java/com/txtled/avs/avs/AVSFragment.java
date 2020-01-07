@@ -9,8 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +25,7 @@ import com.txtled.avs.avs.mvp.AVSPresenter;
 import com.txtled.avs.base.MvpBaseFragment;
 import com.txtled.avs.bean.DeviceHostInfo;
 import com.txtled.avs.main.MainActivity;
+import com.txtled.avs.utils.AlertUtils;
 import com.txtled.avs.web.WebViewActivity;
 
 import java.util.ArrayList;
@@ -50,8 +53,8 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     SwipeRefreshLayout sflAcsRefresh;
     @BindView(R.id.tv_avs_bind)
     TextView tvAvsBind;
-    @BindView(R.id.pb_avs_loading)
-    ProgressBar pbAvsLoading;
+//    @BindView(R.id.pb_avs_loading)
+//    ProgressBar pbAvsLoading;
     @BindView(R.id.tv_avs_code)
     TextView tvAvsCode;
     @BindView(R.id.rl_avs_bind)
@@ -59,6 +62,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     @BindView(R.id.tv_avs_code_hint)
     TextView tvAvsCodeHint;
     private AVSAdapter adapter;
+    private AlertDialog dialog;
 
     @Override
     protected void initInject() {
@@ -75,7 +79,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         //开始NSD扫描
         presenter.initAmazon(getActivity(), getContext());
         rlAvsBind.setVisibility(View.GONE);
-        pbAvsLoading.setVisibility(View.GONE);
+        //pbAvsLoading.setVisibility(View.GONE);
         tvAvsWifi.setOnClickListener(this);
         tvAvsBind.setOnClickListener(this);
 
@@ -85,6 +89,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         adapter.setListener(this);
 
         sflAcsRefresh.setOnRefreshListener(this);
+        dialog = AlertUtils.showLoadingDialog(getContext(),R.layout.alert_progress);
     }
 
     @Override
@@ -119,7 +124,8 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     /****************AMZ LOGIN FUNCTION************/
     @Override
     public void showAlertDialog(Exception exception) {
-        pbAvsLoading.setVisibility(View.GONE);
+        hidProgress();
+        //pbAvsLoading.setVisibility(View.GONE);
         exception.printStackTrace();
         MainActivity.ErrorDialogFragment dialogFragment = new MainActivity.ErrorDialogFragment();
         Bundle args = new Bundle();
@@ -157,14 +163,18 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         getActivity().runOnUiThread(() -> {
             rlAvsBind.setVisibility(View.VISIBLE);
             tvAvsCode.setText(mCode);
-            pbAvsLoading.setVisibility(View.GONE);
+            hidProgress();
+            //pbAvsLoading.setVisibility(View.GONE);
             sflAcsRefresh.setVisibility(View.GONE);
         });
     }
 
     @Override
     public void hidProgress() {
-        pbAvsLoading.setVisibility(View.GONE);
+        if (dialog != null && dialog.isShowing()){
+            getActivity().runOnUiThread(() -> dialog.dismiss());
+        }
+        //pbAvsLoading.setVisibility(View.GONE);
     }
 
     @Override
@@ -181,6 +191,17 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         sflAcsRefresh.postDelayed(() -> sflAcsRefresh.setRefreshing(false), i);
     }
 
+    @Override
+    public void showLoadingView() {
+        getActivity().runOnUiThread(() -> dialog.show());
+
+    }
+
+    @Override
+    public void showToast(int msg) {
+        Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();
+    }
+
     public void bindSuccess() {
         tvAvsCode.setVisibility(View.GONE);
         tvAvsBind.setVisibility(View.GONE);
@@ -189,8 +210,10 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void onAVSClick(int position) {
+        dialog.show();
         presenter.onItemClick(position);
-        pbAvsLoading.setVisibility(View.VISIBLE);
+
+        //pbAvsLoading.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -203,11 +226,13 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     public void onResume() {
         super.onResume();
         presenter.resume();
+        hidProgress();
     }
 
     @Override
     public void onDestroy() {
         presenter.destroy();
+        dialog = null;
         super.onDestroy();
     }
 }

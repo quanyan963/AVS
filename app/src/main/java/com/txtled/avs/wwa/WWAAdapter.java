@@ -25,10 +25,15 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     private ArrayList<WWADeviceInfo> mData;
     private Context mContext;
     private OnWWAItemClickListener listener;
+    private String userId;
 
     public WWAAdapter(ArrayList<WWADeviceInfo> mData, Context mContext) {
         this.mData = mData;
         this.mContext = mContext;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public void setListener(OnWWAItemClickListener listener) {
@@ -45,11 +50,28 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull WWAViewHolder holder, final int position) {
         if (mData != null) {
-            if (mData.get(position).getThing().isEmpty()){
+            if (userId == null || userId.isEmpty()){
                 holder.tvWwaItem.setText(mData.get(position).getIp());
+                holder.btWwaItem.setText(R.string.sign_in);
+            }else if (mData.get(position).getFriendlyNames().isEmpty()){
+                holder.tvWwaItem.setText(mData.get(position).getIp());
+                holder.btWwaItem.setText(R.string.configure);
             }else {
-                holder.tvWwaItem.setText(mData.get(position).getThing()
-                        .split("_")[1].replace("-"," "));
+                String names = mData.get(position).getFriendlyNames();
+                String[] id_name = names.split(",");
+                for (int i = 0; i < id_name.length; i++) {
+                    String[] value = id_name[i].split("_");
+                    if (value[0].equals(userId)){
+                        holder.tvWwaItem.setText(value[1]);
+                        holder.btWwaItem.setText(R.string.change_name);
+                        break;
+                    }
+                    if (i == id_name.length - 1){
+                        holder.tvWwaItem.setText(mData.get(position).getIp());
+                        holder.btWwaItem.setText(R.string.configure);
+                    }
+                }
+
             }
 
             holder.btWwaItem.setOnClickListener(v -> listener.onWWAClick(position));
@@ -63,6 +85,11 @@ public class WWAAdapter extends RecyclerView.Adapter<WWAAdapter.WWAViewHolder> {
 
     public void setData(ArrayList<WWADeviceInfo> strReceive) {
         mData = strReceive;
+    }
+
+    public void update(int position, ArrayList<WWADeviceInfo> newNames) {
+        mData = newNames;
+        notifyItemChanged(position);
     }
 
     public class WWAViewHolder extends RecyclerView.ViewHolder {

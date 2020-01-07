@@ -32,7 +32,7 @@ public class Constants {
     public static final String USER_ID = "USERID";
     public static final String THING_DIR = "ThingDir";
     public static final String MY_OIT_CE = "myiotce";
-    public static final String SEND_THING_NAME = "{\"endpoint\":\"%s\", \"cid\":\"%s\",\"thing\":\"%s\"}";
+    public static final String SEND_THING_NAME = "{\"endpoint\":\"%s\",\"thing\":\"%s\"}";
     public static final String SEND_CA_ONE = "{\"ca0\":\"%s\"}";
     public static final String SEND_CA_TWO = "{\"ca1\":\"%s\"}";
     public static final String SEND_CERT_ONE = "{\"cert0\":\"%s\"}";
@@ -40,6 +40,7 @@ public class Constants {
     public static final String SEND_KEY_ONE = "{\"key0\":\"%s\"}";
     public static final String SEND_KEY_TWO = "{\"key1\":\"%s\"}";
     public static final String REBOOT = "{\"reboot\":1}";
+    public static final String FRIENDLY_NAME = "{\"friendlyname\":\"%s\"}";
     public static final String REST_API = "a311cdvk7hqtsk-ats.iot.us-east-1.amazonaws.com";
     public static final String POLICY_JSON = "{\n" +
             "  \"Version\": \"2012-10-17\",\n" +

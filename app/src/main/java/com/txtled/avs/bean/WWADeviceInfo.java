@@ -26,22 +26,22 @@ public class WWADeviceInfo implements Serializable {
 
     private String gw;//网关地址
 
-    private String host;//aws endpoint
+    private String host;//aws endpoint  a311cdvk7hqtsk-ats.iot.us-east-1.amazonaws.com
 
-    private String port;//endpoint端口
+    private String port;//endpoint端口 8883  443
 
-    private String cid;//clientId
+    private String cid;//userId  随机
 
-    private String thing;//事物名称
+    private String thing;//事物名称  thingName
 
-    private boolean isConfigure;//是否配置
+    private String friendlyNames;//用户对应名称
 
     public WWADeviceInfo() {
     }
 
-    @Generated(hash = 2047763160)
+    @Generated(hash = 1459644242)
     public WWADeviceInfo(Long id, String ip, String netMask, String gw, String host, String port,
-            String cid, String thing, boolean isConfigure) {
+            String cid, String thing, String friendlyNames) {
         this.id = id;
         this.ip = ip;
         this.netMask = netMask;
@@ -50,11 +50,11 @@ public class WWADeviceInfo implements Serializable {
         this.port = port;
         this.cid = cid;
         this.thing = thing;
-        this.isConfigure = isConfigure;
+        this.friendlyNames = friendlyNames;
     }
 
     public WWADeviceInfo(String ip, String netMask, String gw, String host, String port
-            , String cid, String thing) {
+            , String cid, String thing, String friendlyNames) {
         this.ip = ip;
         this.netMask = netMask;
         this.gw = gw;
@@ -62,6 +62,15 @@ public class WWADeviceInfo implements Serializable {
         this.port = port;
         this.cid = cid;
         this.thing = thing;
+        this.friendlyNames = friendlyNames;
+    }
+
+    public String getFriendlyNames() {
+        return friendlyNames;
+    }
+
+    public void setFriendlyNames(String friendlyNames) {
+        this.friendlyNames = friendlyNames;
     }
 
     public String getIp() {
@@ -126,21 +135,5 @@ public class WWADeviceInfo implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public boolean isConfigure() {
-        return isConfigure;
-    }
-
-    public void setConfigure(boolean configure) {
-        isConfigure = configure;
-    }
-
-    public boolean getIsConfigure() {
-        return this.isConfigure;
-    }
-
-    public void setIsConfigure(boolean isConfigure) {
-        this.isConfigure = isConfigure;
     }
 }

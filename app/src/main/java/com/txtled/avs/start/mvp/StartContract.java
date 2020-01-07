@@ -13,5 +13,6 @@ public interface StartContract {
 
     interface Presenter extends BasePresenter<View>{
 
+        void initUid();
     }
 }

@@ -15,4 +15,12 @@ public class StartPresenter extends RxPresenter<StartContract.View> implements S
     public StartPresenter(DataManagerModel mDataManagerModel) {
         this.mDataManagerModel = mDataManagerModel;
     }
+
+    @Override
+    public void initUid() {
+        if (mDataManagerModel.getUid().isEmpty()){
+
+            mDataManagerModel.setUid(String.valueOf(android.os.Build.SERIAL));
+        }
+    }
 }

@@ -42,7 +42,7 @@ android {
     }
 
     greendao {
-        schemaVersion 5
+        schemaVersion 6
         daoPackage 'com.txtled.avs.bean.dao'
         targetGenDir 'src/main/java'
     }

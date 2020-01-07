@@ -91,6 +91,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     private boolean isFinishedConfigure;
     private WWAAdapter adapter;
     private ArrayList<WWADeviceInfo> data;
+    private AlertDialog dialog;
 
 
     @Override
@@ -122,7 +123,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         data = new ArrayList<>();
         adapter = new WWAAdapter(data, getContext());
         adapter.setListener(this);
-
+        adapter.setUserId(presenter.geUserId());
         rlvWwaDevice.setAdapter(adapter);
 
         mDeviceCountET.setText("1");
@@ -131,9 +132,10 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         tvRegister.setOnClickListener(this);
         presenter.init(getActivity());
 
+
         //连接iot
         presenter.getAmazonIotService();
-
+        dialog = AlertUtils.showLoadingDialog(getContext(),R.layout.alert_progress);
     }
 
     public void changeResetView(boolean type) {
@@ -152,6 +154,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     public void onDestroyView() {
         super.onDestroyView();
         presenter.destroy();
+        dialog = null;
     }
 
     @Override
@@ -270,6 +273,33 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void createSuccess() {
+
+    }
+
+    @Override
+    public void setUserId(String value) {
+        getActivity().runOnUiThread(() -> {
+            adapter.setUserId(value);
+            adapter.notifyDataSetChanged();
+        });
+    }
+
+    @Override
+    public void updateAdapter(int position, ArrayList<WWADeviceInfo> newNames) {
+        adapter.update(position,newNames);
+    }
+
+    @Override
+    public void showLoadingView() {
+        getActivity().runOnUiThread(() -> dialog.show());
+
+    }
+
+    @Override
+    public void hidLoadingView() {
+        if (dialog != null && dialog.isShowing()){
+            getActivity().runOnUiThread(() -> dialog.dismiss());
+        }
 
     }
 

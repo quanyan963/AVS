@@ -66,6 +66,11 @@
     <string name="transmit_completed">Transmit completed</string>
     <string name="device_name_used">Device name has been already used.</string>
     <string name="contain_hint">Contain only A-Za-z and Spaces</string>
+    <string name="sign_in">Sign in</string>
+    <string name="change_name">Change name</string>
+    <string name="changing">changing…</string>
+    <string name="complete_change">Complete change</string>
+    <string name="not_responding">AVS is not responding.</string>
 
 
 </resources>

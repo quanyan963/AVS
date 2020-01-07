@@ -9,7 +9,6 @@ import android.location.LocationManager;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
@@ -49,11 +48,8 @@ import com.amazonaws.services.iot.model.CreateKeysAndCertificateResult;
 import com.amazonaws.services.iot.model.CreatePolicyRequest;
 import com.amazonaws.services.iot.model.CreateThingRequest;
 import com.amazonaws.services.iot.model.CreateThingResult;
-import com.amazonaws.services.iot.model.KeyPair;
 import com.txtled.avs.R;
 import com.txtled.avs.application.MyApplication;
-import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
-import com.txtled.avs.avs.mvp.AVSPresenter;
 import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.bean.WWADeviceInfo;
@@ -70,7 +66,6 @@ import com.txtled.avs.wwa.udp.UDPBuild;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,8 +84,8 @@ import io.reactivex.schedulers.Schedulers;
 import static android.content.Context.WIFI_SERVICE;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
-import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.CA;
+import static com.txtled.avs.utils.Constants.FRIENDLY_NAME;
 import static com.txtled.avs.utils.Constants.REBOOT;
 import static com.txtled.avs.utils.Constants.REST_API;
 import static com.txtled.avs.utils.Constants.SEND_CA_ONE;
@@ -222,6 +217,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         String netMask = Utils.getWifiIp(dhcpInfo.netmask);
         String[] ipTemp = ip.split("\\.");
         String[] maskTemp = netMask.split("\\.");
+        broadCast = "";
         for (int i = 0; i < maskTemp.length; i++) {
             if (maskTemp[i].equals("255")) {
                 broadCast += ipTemp[i] + ".";
@@ -259,7 +255,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     }
 
     private void udpSend(String message, OnUdpSendRequest listener){
-        udpBuild = UDPBuild.getUdpBuild(broadCast);
+        udpBuild = UDPBuild.getUdpBuild();
         my_wifiManager = ((WifiManager) context.getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE));
         dhcpInfo = my_wifiManager.getDhcpInfo();
@@ -276,7 +272,8 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                             deviceInfo.optString("host"),
                             deviceInfo.optString("port"),
                             deviceInfo.optString("cid"),
-                            deviceInfo.optString("thing")
+                            deviceInfo.optString("thing"),
+                            deviceInfo.optString("friendlyname")
                     );
                     refreshData.add(info);
                     setTime();
@@ -288,7 +285,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                 e.printStackTrace();
             }
         });
-        udpBuild.sendMessage(message);
+        udpBuild.sendMessage(message,broadCast);
     }
 
     private void setTime() {
@@ -342,7 +339,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         friendlyName = "";
         for (int i = 0; i < values.length; i++) {
             if (!values[i].isEmpty()){
-                friendlyName += values[i] + (i == values.length - 1 ? "" : "-");
+                friendlyName += values[i] + (i == values.length - 1 ? "" : " ");
             }
         }
         String finalRealName = friendlyName;
@@ -373,6 +370,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     public boolean checkUserHasLogin() {
         userId = mDataManagerModel.getUserId();
         if (userId.isEmpty()){
+            view.showLoadingView();
             AuthorizationManager.authorize(
                     new AuthorizeRequest.Builder(mRequestContext)
                             .addScopes(ProfileScope.profile())
@@ -390,6 +388,11 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         mRequestContext.onResume();
     }
 
+    @Override
+    public String geUserId() {
+        return mDataManagerModel.getUserId();
+    }
+
     private void createIotCore(String friendlyName, int position, OnCreateThingListener listener) {
 
         //写入DDB
@@ -401,53 +404,139 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             GetItemResult itemResult = client.getItem(new GetItemRequest()
                     .withTableName(DB_NAME).withKey(key));
             if (itemResult.getItem() != null) {
-                //更改数据
                 Map<String, AttributeValue> resultItem = itemResult.getItem();
                 AttributeValue cert_data = resultItem.get(THING_DIR);
                 //数据查重
                 String[] names = cert_data.getM().keySet().toArray(new String[cert_data.getM().size()]);
                 for (int i = 0; i < names.length; i++) {
                     if (names[i].equals(friendlyName)){
-                        //listener.onStatueChange(R.string.device_name_used);
-                        //已存在则不创建事物，使用数据库数据
-                        Map<String,AttributeValue> deviceData = cert_data.getM().get(friendlyName).getM();
-
-                        keysAndCertificate = new CreateKeysAndCertificateResult();
-                        iotThing = new CreateThingResult();
-                        keysAndCertificate.withKeyPair(new KeyPair()
-                                .withPrivateKey(deviceData.get("certKey").getS()))
-                                .setCertificatePem(deviceData.get("certPem").getS());
-                        iotThing.withThingName(userId+"_"+friendlyName)
-                                .withThingId(deviceData.get("thingId").getS())
-                                .setThingArn(deviceData.get("thingArn").getS());
-                        //写入设备
-                        writeToDevice(position, listener);
+                        //重名了
+                        listener.onStatueChange(R.string.device_name_used);
                         return;
+                        //已存在则不创建事物，使用数据库数据
+//                        Map<String,AttributeValue> deviceData = cert_data.getM().get(friendlyName).getM();
+//
+//                        keysAndCertificate = new CreateKeysAndCertificateResult();
+//                        iotThing = new CreateThingResult();
+//                        keysAndCertificate.withKeyPair(new KeyPair()
+//                                .withPrivateKey(deviceData.get("certKey").getS()))
+//                                .setCertificatePem(deviceData.get("certPem").getS());
+//                        iotThing.withThingName(deviceData.get(friendlyName).getS())
+//                                .withThingId(deviceData.get("thingId").getS())
+//                                .setThingArn(deviceData.get("thingArn").getS());
+//                        //写入设备
+//                        writeToDevice(position, listener);
+//                        return;
                     }
                 }
-                //不重复则创建事物
-                createIotThing(listener,friendlyName);
+                //没重名
+                if (refreshData.get(position).getThing().isEmpty()){
+                    //创建事物
+                    createIotThing(listener);
 
-                HashMap<String, AttributeValue> cert = createData(keysAndCertificate,iotThing);
-                cert_data.addMEntry(friendlyName, new AttributeValue().withM(cert));
+                    //HashMap<String, AttributeValue> cert = createData(keysAndCertificate,iotThing,friendlyName);
+                    cert_data.addMEntry(friendlyName, new AttributeValue()
+                            .withS(iotThing.getThingName()));
 
-                client.updateItem(new UpdateItemRequest().withTableName(DB_NAME)
-                        .withKey(key).addAttributeUpdatesEntry(THING_DIR,
-                                new AttributeValueUpdate()
-                                        .withValue(cert_data)));
+                    client.updateItem(new UpdateItemRequest().withTableName(DB_NAME)
+                            .withKey(key).addAttributeUpdatesEntry(THING_DIR,
+                                    new AttributeValueUpdate()
+                                            .withValue(cert_data)));
+                }else {
+                    //改名字
+
+                    Map<String, AttributeValue> thingNames = cert_data.getM();
+                    for (int i = 0; i < names.length; i++) {
+                        if (refreshData.get(position).getThing()
+                                .equals(thingNames.get(names[i]).getS())){
+                            listener.onStatueChange(R.string.changing);
+                            thingNames.remove(names[i]);
+                            thingNames.put(friendlyName,new AttributeValue()
+                                    .withS(refreshData.get(position).getThing()));
+                            break;
+                        }
+                        if (i == names.length - 1){
+                            thingNames.put(friendlyName, new AttributeValue()
+                                    .withS(refreshData.get(position).getThing()));
+                        }
+                    }
+
+                    client.updateItem(new UpdateItemRequest().withTableName(DB_NAME)
+                            .withKey(key).addAttributeUpdatesEntry(THING_DIR,
+                                    new AttributeValueUpdate()
+                                            .withValue(new AttributeValue().withM(thingNames))));
+
+                    String[] friendlyNames = refreshData.get(position)
+                            .getFriendlyNames().split(",");
+
+                    String newNames = getNewName(friendlyNames,friendlyName);
+
+                    String finalNewNames = newNames;
+                    udpSend(String.format(FRIENDLY_NAME, newNames), result -> {
+                        if (result.contains("1")){
+                            udpBuild.stopUDPSocket();
+                            listener.onStatueChange(R.string.complete_change);
+                            listener.dismiss();
+                        }else {
+                            udpBuild.sendMessage(String.format(FRIENDLY_NAME, finalNewNames),
+                                    refreshData.get(position).getIp());
+                        }
+                    });
+
+                    refreshData.get(position).setFriendlyNames(newNames);
+                    view.updateAdapter(position, refreshData);
+                    return;
+                }
+
             } else {
                 //创建事物
-                createIotThing(listener,friendlyName);
-                //创建数据
-                HashMap<String, AttributeValue> certs = new HashMap<>();
-                certs.put(friendlyName, new AttributeValue()
-                        .withM(createData(keysAndCertificate,iotThing)));
+                if (refreshData.get(position).getThing().isEmpty()){
+                    createIotThing(listener);
+                    //创建数据
+                    HashMap<String, AttributeValue> certs = new HashMap<>();
+                    certs.put(friendlyName, new AttributeValue()
+                            .withS(iotThing.getThingName()));//createData(keysAndCertificate,iotThing,friendlyName)
 
-                PutItemRequest request = new PutItemRequest();
-                request.withTableName(Constants.DB_NAME);
-                request.addItemEntry(USER_ID, new AttributeValue().withS(userId));
-                request.addItemEntry(THING_DIR, new AttributeValue().withM(certs));
-                client.putItem(request);
+                    PutItemRequest request = new PutItemRequest();
+                    request.withTableName(Constants.DB_NAME);
+                    request.addItemEntry(USER_ID, new AttributeValue().withS(userId));
+                    request.addItemEntry(THING_DIR, new AttributeValue().withM(certs));
+                    client.putItem(request);
+                }else {
+                    //创建数据
+                    HashMap<String, AttributeValue> certs = new HashMap<>();
+                    certs.put(friendlyName, new AttributeValue()
+                            .withS(refreshData.get(position).getThing()));//createData(keysAndCertificate,iotThing,friendlyName)
+
+                    PutItemRequest request = new PutItemRequest();
+                    request.withTableName(Constants.DB_NAME);
+                    request.addItemEntry(USER_ID, new AttributeValue().withS(userId));
+                    request.addItemEntry(THING_DIR, new AttributeValue().withM(certs));
+                    client.putItem(request);
+
+                    String[] friendlyNames = refreshData.get(position)
+                            .getFriendlyNames().split(",");
+
+                    String newNames = getNewName(friendlyNames,friendlyName);
+
+                    String finalNewNames = newNames;
+                    udpSend(String.format(FRIENDLY_NAME, newNames), result -> {
+                        if (result.contains("1")){
+                            udpBuild.stopUDPSocket();
+                            listener.onStatueChange(R.string.complete_change);
+                            listener.dismiss();
+                        }else {
+                            udpBuild.sendMessage(String.format(FRIENDLY_NAME, finalNewNames),
+                                    refreshData.get(position).getIp());
+                        }
+                    });
+
+                    refreshData.get(position).setFriendlyNames(newNames);
+                    view.updateAdapter(position, refreshData);
+                    return;
+                }
+
+
             }
         } catch (Exception e) {
             //创建表
@@ -463,11 +552,11 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             tableRequest.setGeneralProgressListener(progressEvent -> {
                 if (progressEvent.getEventCode() == 4) {
                     //创建事物
-                    createIotThing(listener,friendlyName);
+                    createIotThing(listener);
                     //创建数据
                     HashMap<String, AttributeValue> certs = new HashMap<>();
                     certs.put(friendlyName, new AttributeValue()
-                            .withM(createData(keysAndCertificate,iotThing)));
+                            .withS(iotThing.getThingName()));//createData(keysAndCertificate,iotThing,friendlyName)
 
                     PutItemRequest request = new PutItemRequest();
                     request.withTableName(Constants.DB_NAME);
@@ -480,72 +569,98 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         }
 
         //写入设备
-        writeToDevice(position, listener);
+        writeToDevice(friendlyName, position, listener);
     }
 
-    private void writeToDevice(int position, OnCreateThingListener listener) {
-        listener.onStatueChange(R.string.transmitting_data);
+    private String getNewName(String[] friendlyNames, String friendlyName){
+        String newNames = "";
+        boolean changed = false;
+        for (int i = 0; i < friendlyNames.length; i++) {
+            if (friendlyNames[i].contains(userId)){
+                friendlyNames[i] = userId+"_"+friendlyName;
+                changed = true;
+            }
+            newNames += friendlyNames[i] + (i == friendlyNames.length - 1 ? "" : ",");
+        }
+        if (!changed){
+            newNames += (newNames.isEmpty() ? "" : ",") + userId + "_" + friendlyName;
+        }
+        return newNames;
+    }
 
+    private void writeToDevice(String friendlyName, int position, OnCreateThingListener listener) {
+        listener.onStatueChange(R.string.transmitting_data);
+        String friendlyNames = getNewName(refreshData.get(position)
+                .getFriendlyNames().split(","),friendlyName);
         broadCast = refreshData.get(position).getIp();
-        udpSend(String.format(SEND_THING_NAME, REST_API, userId,
+        udpSend(String.format(SEND_THING_NAME, REST_API,
                 iotThing.getThingName()), result -> {
             if (result.contains("\"ca0\"")){
                 udpBuild.sendMessage(result.contains("1") ?
                         String.format(SEND_CA_TWO,CA.substring(CA.length()/2)) :
-                        String.format(SEND_CA_ONE,CA.substring(0,CA.length()/2)));
+                        String.format(SEND_CA_ONE,CA.substring(0,CA.length()/2)),broadCast);
 
             }else if (result.contains("\"ca1\"")){
                 udpBuild.sendMessage(result.contains("\"ca1\":1") ?
                         String.format(SEND_CERT_ONE,keysAndCertificate.getCertificatePem()
                                 .substring(0,keysAndCertificate.getCertificatePem().length()/2)) :
-                        String.format(SEND_CA_TWO,CA.substring(CA.length()/2)));
+                        String.format(SEND_CA_TWO,CA.substring(CA.length()/2)),broadCast);
 
             }else if (result.contains("\"cert0\"")){
                 udpBuild.sendMessage(result.contains("1") ?
                         String.format(SEND_CERT_TWO,keysAndCertificate.getCertificatePem()
                                 .substring(keysAndCertificate.getCertificatePem().length()/2)):
                         String.format(SEND_CERT_ONE,keysAndCertificate.getCertificatePem()
-                                .substring(0,keysAndCertificate.getCertificatePem().length()/2)));
+                                .substring(0,keysAndCertificate.getCertificatePem().length()/2)),broadCast);
 
             }else if (result.contains("\"cert1\"")){
                 udpBuild.sendMessage(result.contains("\"cert1\":1") ?
                         String.format(SEND_KEY_ONE,keysAndCertificate.getKeyPair().getPrivateKey()
                                 .substring(0,keysAndCertificate.getKeyPair().getPrivateKey().length()/2)) :
                         String.format(SEND_CERT_TWO,keysAndCertificate.getCertificatePem()
-                                .substring(keysAndCertificate.getCertificatePem().length()/2)));
+                                .substring(keysAndCertificate.getCertificatePem().length()/2)),broadCast);
 
             }else if (result.contains("\"key0\"")){
                 udpBuild.sendMessage(result.contains("1") ?
                         String.format(SEND_KEY_TWO,keysAndCertificate.getKeyPair().getPrivateKey()
                                 .substring(keysAndCertificate.getKeyPair().getPrivateKey().length()/2)):
                         String.format(SEND_KEY_ONE,keysAndCertificate.getKeyPair().getPrivateKey()
-                                .substring(0,keysAndCertificate.getKeyPair().getPrivateKey().length()/2)));
+                                .substring(0,keysAndCertificate.getKeyPair()
+                                        .getPrivateKey().length()/2)),broadCast);
 
             }else if (result.contains("\"key1\"")){
-                udpBuild.sendMessage(result.contains("\"key1\":1") ? REBOOT :
+                udpBuild.sendMessage(result.contains("\"key1\":1") ?
+                        String.format(FRIENDLY_NAME, friendlyNames) :
                         String.format(SEND_KEY_TWO,keysAndCertificate.getKeyPair().getPrivateKey()
-                                .substring(keysAndCertificate.getKeyPair().getPrivateKey().length()/2)));
+                                .substring(keysAndCertificate.getKeyPair()
+                                        .getPrivateKey().length()/2)),broadCast);
+            }else if (result.contains("\"friendlyname\"")){
+                udpBuild.sendMessage(result.contains("1") ? REBOOT :
+                        String.format(FRIENDLY_NAME, friendlyNames),broadCast);
             }else if (result.contains("\"reboot\"")){
                 if (result.contains("1")){
                     udpBuild.stopUDPSocket();
                     listener.onStatueChange(R.string.transmit_completed);
                     listener.dismiss();
+                    refreshData.get(position).setThing(iotThing.getThingName());
+                    refreshData.get(position).setFriendlyNames(friendlyNames);
+                    view.updateAdapter(position,refreshData);
                 }else {
-                    udpBuild.sendMessage(REBOOT);
+                    udpBuild.sendMessage(REBOOT,broadCast);
                 }
             } else {
                 udpBuild.sendMessage(result.contains("1") ?
                         String.format(SEND_CA_ONE,CA.substring(0,CA.length()/2)) :
-                        String.format(SEND_THING_NAME, REST_API, userId, iotThing.getThingName()));
+                        String.format(SEND_THING_NAME, REST_API, iotThing.getThingName()),broadCast);
             }
         });
     }
 
-    private void createIotThing(OnCreateThingListener listener, String friendlyName){
+    private void createIotThing(OnCreateThingListener listener){
         listener.onStatueChange(R.string.hint_create_thing);
         //创建事物
         iotThing = awsIot.createThing(new CreateThingRequest()
-                .withThingName(userId+"_"+friendlyName));
+                .withThingName(mDataManagerModel.getUid()+"_"+System.currentTimeMillis()));
         Utils.Logger(TAG, "CreateThingResult:", "\nthingArn:" + iotThing.getThingArn()
                 + "\nname:" + iotThing.getThingName() + "\nid:" + iotThing.getThingId());
         //创建证书
@@ -582,18 +697,18 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                 .withTarget(keysAndCertificate.getCertificateArn()));
     }
 
-    private HashMap<String, AttributeValue> createData(CreateKeysAndCertificateResult keysAndCertificate
-            , CreateThingResult iotThing){
-        HashMap<String, AttributeValue> cert = new HashMap<>();
-        //cert.put("certId", new AttributeValue().withS(keysAndCertificate.getCertificateId()));
-        cert.put("certKey", new AttributeValue().withS(keysAndCertificate.getKeyPair().getPrivateKey()));
-        cert.put("certPem", new AttributeValue().withS(keysAndCertificate.getCertificatePem()));
-        //cert.put("certArn", new AttributeValue().withS(keysAndCertificate.getCertificateArn()));
-        cert.put("thingArn", new AttributeValue().withS(iotThing.getThingArn()));
-        cert.put("thingId", new AttributeValue().withS(iotThing.getThingId()));
-        //cert.put("friendlyName", new AttributeValue().withS(iotThing.getThingName()));
-        return cert;
-    }
+//    private HashMap<String, AttributeValue> createData(CreateKeysAndCertificateResult keysAndCertificate
+//            , CreateThingResult iotThing, String friendlyName){
+//        HashMap<String, AttributeValue> cert = new HashMap<>();
+//        //cert.put("certId", new AttributeValue().withS(keysAndCertificate.getCertificateId()));
+//        //cert.put("certKey", new AttributeValue().withS(keysAndCertificate.getKeyPair().getPrivateKey()));
+//        //cert.put("certPem", new AttributeValue().withS(keysAndCertificate.getCertificatePem()));
+//        //cert.put("certArn", new AttributeValue().withS(keysAndCertificate.getCertificateArn()));
+//        //cert.put("thingArn", new AttributeValue().withS(iotThing.getThingArn()));
+//        cert.put(iotThing.getThingName(), new AttributeValue().withS(friendlyName));
+//        //cert.put("friendlyName", new AttributeValue().withS(iotThing.getThingName()));
+//        return cert;
+//    }
 
     /**
      * 创建iot服务连接
@@ -663,7 +778,6 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     private class AuthorizeListenerImpl extends AuthorizeListener {
         @Override
         public void onSuccess(final AuthorizeResult authorizeResult) {
-
             //Utils.Logger(TAG,"userId:",authorizeResult.getUser().getUserId());
             String token = authorizeResult.getAccessToken();
 
@@ -674,6 +788,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                 Map<String, String> logins = new HashMap<String, String>();
                 logins.put("www.amazon.com", token);
                 provider.setLogins(logins);
+                client = new AmazonDynamoDBClient(provider);
                 //getIdentity();
             } else {
 
@@ -681,7 +796,10 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
             }
             String[] values = authorizeResult.getUser().getUserId().split("\\.");
-            mDataManagerModel.setUserId(values[values.length - 1]);
+            userId = values[values.length - 1];
+            mDataManagerModel.setUserId(userId);
+            view.setUserId(userId);
+            view.hidLoadingView();
         }
 
         @Override

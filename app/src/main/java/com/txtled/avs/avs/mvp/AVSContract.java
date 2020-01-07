@@ -28,6 +28,10 @@ public interface AVSContract {
         void showNetWorkError();
 
         void closeRefresh(int i);
+
+        void showLoadingView();
+
+        void showToast(int not_responding);
     }
 
     interface Presenter extends BasePresenter<View> {

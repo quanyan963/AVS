@@ -66,6 +66,11 @@
     <string name="transmit_completed">传输完成</string>
     <string name="device_name_used">设备名已被使用。</string>
     <string name="contain_hint">只能包含字母大小写及空格</string>
+    <string name="sign_in">登录</string>
+    <string name="change_name">更名</string>
+    <string name="changing">更改中…</string>
+    <string name="complete_change">更改成功</string>
+    <string name="not_responding">AVS is not responding.</string>
 
 
 </resources>

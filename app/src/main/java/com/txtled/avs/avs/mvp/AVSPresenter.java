@@ -22,6 +22,7 @@ import com.amazon.identity.auth.device.api.workflow.RequestContext;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
 import com.amazonaws.regions.Regions;
+import com.txtled.avs.R;
 import com.txtled.avs.application.MyApplication;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.DeviceProvisioningInfo;
@@ -52,7 +53,9 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 import static com.txtled.avs.base.BaseFragment.TAG;
@@ -83,6 +86,8 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     private String mCode;
     private String address;
     private CognitoCachingCredentialsProvider provider;
+    private AuthorizeListenerImpl authorizeListener;
+    private String readStr;
 
 
     @Inject
@@ -110,7 +115,8 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         /**********AMZON LOGIN ********************************/
 
         mRequestContext = RequestContext.create(activity);
-        mRequestContext.registerListener(new AuthorizeListenerImpl());
+        authorizeListener = new AuthorizeListenerImpl();
+        mRequestContext.registerListener(authorizeListener);
 
         try {
             mProvisioningClient = new ProvisioningClient(context);
@@ -170,9 +176,22 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                             public void onNext(Socket socket) {
                                 readSocket();
                                 sendSocket(sendMsg == true ? RESET_DEVICE : GET_CODE);
+                                startTime();
                             }
                         })
         );
+    }
+
+    private void startTime() {
+
+        Observable.timer(4,TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe(time -> {
+                    if (readStr == null || readStr.isEmpty()){
+                        view.hidProgress();
+                        view.showToast(R.string.not_responding);
+                        readDisposable.dispose();
+                    }
+                });
     }
 
     private void readSocket() {
@@ -188,9 +207,9 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             @Override
             protected DeviceProvisioningInfo doInBackground(Void... voids) {
                 try {
-                    long startTime = System.currentTimeMillis();
+                    //long startTime = System.currentTimeMillis();
                     DeviceProvisioningInfo response = mProvisioningClient.getDeviceProvisioningInfo();
-                    long duration = System.currentTimeMillis() - startTime;
+                    //long duration = System.currentTimeMillis() - startTime;
 
 //                    if (duration < MIN_CONNECT_PROGRESS_TIME_MS) {
 //                        try {
@@ -249,23 +268,23 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                         final byte[] b = new byte[1024];
                         int length = inStr.read(b);
                         if (length > 0) {
-                            final String str = new String(b).trim();
-                            Utils.Logger(TAG, "Read:", str);
-                            if (str.contains("reset")) {
+                            readStr = new String(b).trim();
+                            Utils.Logger(TAG, "Read:", readStr);
+                            if (readStr.contains("reset")) {
                                 //readDisposable.dispose();
                                 //socket.connect(new InetSocketAddress(address,9000),3000);
                                 //readSocket();
                                 readDisposable.dispose();
                                 socket.close();
                                 temp.execute();
-                            } else if (str.contains("code")) {
-                                String[] code = str.split("=");
+                            } else if (readStr.contains("code")) {
+                                String[] code = readStr.split("=");
                                 mCode = code[1];
                                 readDisposable.dispose();
                                 socket.close();
                                 view.bindDevice(mCode);
                             } else {
-                                Utils.Logger(TAG, "Other:", str);
+                                Utils.Logger(TAG, "Other:", readStr);
                             }
                         }
                     } catch (Exception e) {
@@ -320,6 +339,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                 writeDisposable.dispose();
                 writeDisposable = null;
             }
+            mRequestContext.unregisterListener(authorizeListener);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -358,6 +378,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     private class AuthorizeListenerImpl extends AuthorizeListener {
         @Override
         public void onSuccess(final AuthorizeResult authorizeResult) {
+            view.showLoadingView();
             final String authorizationCode = authorizeResult.getAuthorizationCode();
             final String redirectUri = authorizeResult.getRedirectURI();
             final String clientId = authorizeResult.getClientId();
@@ -415,6 +436,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                         Log.e("TAG", "Login success");
                         socket = new Socket();
                         connSocket(false);
+                        view.hidProgress();
                     }
                 }
             }.execute();
