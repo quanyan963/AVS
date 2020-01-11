@@ -25,18 +25,20 @@ public interface AVSContract {
 
         void hidProgress();
 
-        void showNetWorkError();
+        void showNetWorkError(int str);
 
         void closeRefresh(int i);
 
         void showLoadingView();
 
         void showToast(int not_responding);
+
+        void hidSnackBar();
     }
 
     interface Presenter extends BasePresenter<View> {
 
-        void refresh(Activity activity);
+        void refresh();
 
         void initAmazon(Activity activity, Context context);
 
@@ -45,5 +47,7 @@ public interface AVSContract {
         void resume();
 
         void destroy();
+
+        void setSwitch(boolean avsSwitch);
     }
 }

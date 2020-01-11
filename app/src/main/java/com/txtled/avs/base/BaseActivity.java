@@ -3,22 +3,17 @@ package com.txtled.avs.base;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.txtled.avs.R;
 import com.txtled.avs.application.MyApplication;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import butterknife.ButterKnife;
 
@@ -43,9 +38,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(getLayout());
         ButterKnife.bind(this);
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
 
         mApplication = MyApplication.getInstance();
         addActivity();
@@ -144,9 +136,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
     }
 
     public void addActivity() {
@@ -187,10 +176,5 @@ public abstract class BaseActivity extends AppCompatActivity {
             snackbar.dismiss();
             snackbar = null;
         }
-    }
-
-    @Subscribe
-    public void onEventMainThread(String str) {
-
     }
 }

@@ -26,16 +26,6 @@ public class PreferencesHelperImpl implements PreferencesHelper {
     }
 
     @Override
-    public boolean isConfigured() {
-        return mSharedPreferences.getBoolean(IS_CONFIGURED,false);
-    }
-
-    @Override
-    public void setIsConfigured(boolean configured) {
-        mSharedPreferences.edit().putBoolean(IS_CONFIGURED,configured).apply();
-    }
-
-    @Override
     public void setUserId(String userId) {
         mSharedPreferences.edit().putString(USER_ID,userId).apply();
     }

@@ -106,7 +106,7 @@ public class Mdnser {
         @Override
         public void onServiceResolved(NsdServiceInfo nsdServiceInfo) {
 
-            String mac_s = "";
+            String mac_s;
             inetAddress = nsdServiceInfo.getHost();
 
             if (inetAddress instanceof Inet4Address) {
@@ -125,10 +125,10 @@ public class Mdnser {
         try {
             BufferedReader br = new BufferedReader(
                     new FileReader("/proc/net/arp"));
-            String line = "";
-            String ip = "";
-            String flag = "";
-            String mac = "";
+            String line;
+            String ip;
+            String flag;
+            String mac;
 
             while ((line = br.readLine()) != null) {
                 try {

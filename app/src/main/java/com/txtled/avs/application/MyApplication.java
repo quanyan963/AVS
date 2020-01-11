@@ -12,6 +12,8 @@ import com.txtled.avs.di.module.AppModule;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.txtled.avs.utils.Constants.IDENTITY_POOL_ID;
+
 /**
  * Created by Mr.Quan on 2019/12/9.
  */
@@ -21,7 +23,6 @@ public class MyApplication extends Application {
     private List<Activity> mActivityList;
     private static AppComponent mAppComponent;
     private static final Regions MY_REGION = Regions.US_EAST_1;
-    private String identityPoolId;
     private static CognitoCachingCredentialsProvider credentialsProvider;
 
 
@@ -33,11 +34,10 @@ public class MyApplication extends Application {
         }
         mActivityList = new ArrayList<>();
 
-        identityPoolId = "us-east-1:a7fd6e3b-f444-41e7-ae9b-38f8ccef53cb";
         // 初始化 Amazon Cognito 凭证提供程序
         credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                identityPoolId, // 身份池 ID
+                IDENTITY_POOL_ID, // 身份池 ID
                 MY_REGION // 区域
         );
     }
@@ -45,25 +45,6 @@ public class MyApplication extends Application {
     public static CognitoCachingCredentialsProvider getCredentialsProvider(){
         return credentialsProvider;
     }
-
-//    private void getIdentity() {
-//        new Thread(){
-//            @Override
-//            public void run() {
-//                super.run();
-//                try {
-//
-//                    // 先只获取身份ID ，验证 Cognito 已正常启用。
-//                    String identityId = credentialsProvider.getIdentityId();
-//                    Utils.Logger("Cognito", "my ID is ", identityId);
-//                }
-//                catch (Exception e)
-//                {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
-//    }
 
     public static MyApplication getInstance() {
         if (sInstance == null) {

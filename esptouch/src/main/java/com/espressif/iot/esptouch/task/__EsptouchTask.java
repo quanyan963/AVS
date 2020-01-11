@@ -68,7 +68,7 @@ public class __EsptouchTask implements __IEsptouchTask {
     private void __putEsptouchResult(boolean isSuc, String bssid, InetAddress inetAddress) {
         synchronized (mEsptouchResultList) {
             // check whether the result receive enough UDP response
-            boolean isTaskSucCountEnough = false;
+            boolean isTaskSucCountEnough;
             Integer count = mBssidTaskSucCountMap.get(bssid);
             if (count == null) {
                 count = 0;
@@ -316,7 +316,7 @@ public class __EsptouchTask implements __IEsptouchTask {
                 mApPassword, localInetAddress, mEncryptor);
         // listen the esptouch result asyn
         __listenAsyn(mParameter.getEsptouchResultTotalLen());
-        boolean isSuc = false;
+        boolean isSuc;
         for (int i = 0; i < mParameter.getTotalRepeatTime(); i++) {
             isSuc = __execute(generator);
             if (isSuc) {

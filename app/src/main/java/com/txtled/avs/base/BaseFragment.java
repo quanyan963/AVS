@@ -2,16 +2,12 @@ package com.txtled.avs.base;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
 
 import butterknife.ButterKnife;
 
@@ -41,9 +37,6 @@ public abstract class BaseFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ButterKnife.bind(this, view);
-        if (!EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().register(this);
-        }
         init();
     }
 
@@ -65,14 +58,5 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        if (EventBus.getDefault().isRegistered(this)) {
-            EventBus.getDefault().unregister(this);
-        }
-    }
-
-
-    @Subscribe
-    public void onEventFragmentThread(String flags) {
-        Log.d(TAG, flags);
     }
 }

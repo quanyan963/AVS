@@ -80,14 +80,4 @@ public class MainPresenter extends RxPresenter<MainContract.View> implements Mai
                 break;
         }
     }
-
-    @Override
-    public boolean isConfigured() {
-        return mDataManagerModel.isConfigured();
-    }
-
-    @Override
-    public void setConfigured(boolean b) {
-        mDataManagerModel.setIsConfigured(b);
-    }
 }

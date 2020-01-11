@@ -55,18 +55,29 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     private Fragment mCurrentFragment;
     private AVSFragment mAVSFragment;
     private WWAFragment mWWAFragment;
-    private boolean navigationSwitch;
+    private boolean wwaSwitch;
+    private boolean avsSwitch;
 
     @Override
     public void init() {
         Intent intent = getIntent();
         int checkId = intent.getIntExtra(RB_ID, R.id.rb_main_avs);
+
+        try{
+            String data = intent.getDataString(); // 接收到网页传过来的数据：scheme://data/xxx
+            String[] split = data.split("data/");
+            String param = split[1]; // 获取到网页传过来的参数
+        }catch (Exception e){
+
+        }
+
         initToolbar();
         mCurrentFragment = new AVSFragment();
         rgMainBottom.setOnCheckedChangeListener(this);
         rgMainBottom.check(checkId);
         setNavigationIcon(true);
-        setRightImg(getDrawable(R.drawable.reset),this);
+        isShowRightImg(true);
+        //setRightImg(getDrawable(R.drawable.reset),this);
     }
 
     @Override
@@ -106,13 +117,6 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     }
 
     @Override
-    public void onLeftClick() {
-        navigationSwitch = navigationSwitch == false ? true : false;
-        ((WWAFragment)mCurrentFragment).changeResetView(navigationSwitch);
-
-    }
-
-    @Override
     public void toWebView() {
         Intent intent = new Intent(this, WebViewActivity.class);
         intent.putExtra(WEB_URL,AVS_WIFI_URL);
@@ -136,8 +140,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         }
         switchContent(mCurrentFragment, mAVSFragment);
         setTitle(R.string.avs);
-        //removeNavigationIcon();
-        isShowRightImg(false);
+        setRightImg(getDrawable(R.drawable.avs_change), this);
         rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.avs, R.color.colorPrimaryDark, this), null, null);
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
@@ -151,10 +154,7 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         }
         switchContent(mCurrentFragment, mWWAFragment);
         setTitle(R.string.wwa);
-        if (presenter.isConfigured()){
-            //setNavigationIcon(false);
-            isShowRightImg(true);
-        }
+        setRightImg(getDrawable(R.drawable.reset), this);
         rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
                 R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
         rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
@@ -195,8 +195,14 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.iv_right:
-                navigationSwitch = navigationSwitch == false ? true : false;
-                ((WWAFragment)mCurrentFragment).changeResetView(navigationSwitch);
+                if (mCurrentFragment instanceof WWAFragment){
+                    wwaSwitch = wwaSwitch == false ? true : false;
+                    ((WWAFragment)mCurrentFragment).changeResetView(wwaSwitch);
+                }else {
+                    avsSwitch = avsSwitch == false ? true : false;
+                    ((AVSFragment)mCurrentFragment).changeResetView(avsSwitch);
+                }
+
                 break;
         }
     }

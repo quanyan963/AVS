@@ -1,5 +1,6 @@
 package com.txtled.avs.wwa;
 
+
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -88,9 +89,8 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     SwipeRefreshLayout srlWwaDevices;
     @BindView(R.id.rl_wwa_device)
     RelativeLayout rlWwaDevice;
-    private boolean isFinishedConfigure;
+
     private WWAAdapter adapter;
-    private ArrayList<WWADeviceInfo> data;
     private AlertDialog dialog;
 
 
@@ -101,17 +101,16 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public View initView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_wwa, null);
+        return inflater.inflate(R.layout.fragment_wwa, container,false);
     }
 
     @Override
     public void init() {
-        isFinishedConfigure = presenter.getIsConfigured();
-        if (isFinishedConfigure) {
-            tvRegister.setVisibility(View.GONE);
-            rlSettingPage.setVisibility(View.GONE);
-            rlWwaDevice.setVisibility(View.VISIBLE);
-        }
+//        if (presenter.getIsConfigured()) {
+//            tvRegister.setVisibility(View.GONE);
+//            rlSettingPage.setVisibility(View.GONE);
+//            rlWwaDevice.setVisibility(View.VISIBLE);
+//        }
 
         rlvWwaDevice.setHasFixedSize(true);
         rlvWwaDevice.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -120,7 +119,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
                 .getDimensionPixelSize(R.dimen.dp_6_y),
                 getContext().getResources().getColor(R.color.colorPrimary)));
         srlWwaDevices.setOnRefreshListener(this);
-        data = new ArrayList<>();
+        ArrayList<WWADeviceInfo> data = new ArrayList<>();
         adapter = new WWAAdapter(data, getContext());
         adapter.setListener(this);
         adapter.setUserId(presenter.geUserId());
@@ -140,13 +139,13 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     public void changeResetView(boolean type) {
         if (type) {
-            tvRegister.setVisibility(View.VISIBLE);
-            rlSettingPage.setVisibility(View.GONE);
-            rlWwaDevice.setVisibility(View.GONE);
-        } else {
             tvRegister.setVisibility(View.GONE);
             rlSettingPage.setVisibility(View.GONE);
             rlWwaDevice.setVisibility(View.VISIBLE);
+        } else {
+            tvRegister.setVisibility(View.VISIBLE);
+            rlSettingPage.setVisibility(View.GONE);
+            rlWwaDevice.setVisibility(View.GONE);
         }
     }
 
@@ -167,8 +166,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
 
     @Override
     public void confirm() {
-        presenter.setConfigured(false);
-        ((MainActivity) getActivity()).isShowRightImg(false);
+        //presenter.setConfigured(false);
         byte[] ssid = mApSsidTV.getTag() == null ? ByteUtil.getBytesByString(mApSsidTV.getText().toString())
                 : (byte[]) mApSsidTV.getTag();
         byte[] password = ByteUtil.getBytesByString(mApPasswordET.getText().toString());
@@ -194,7 +192,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
         mApSsidTV.setText("");
         mApSsidTV.setTag(null);
         mApBssidTV.setText("");
-        mMessageTV.setText(R.string.no_wifi_connection);
+        //mMessageTV.setText(R.string.no_wifi_connection);
         mConfirmBtn.setEnabled(false);
         ((MainActivity) getActivity()).showSnackBar(rlSettingPage, R.string.no_wifi_conn, R.string.go, this);
     }
@@ -313,8 +311,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     public void onClick(DialogInterface dialog, int which) {
         rlSettingPage.setVisibility(View.GONE);
         rlWwaDevice.setVisibility(View.VISIBLE);
-        presenter.setConfigured(true);
-        ((MainActivity) getActivity()).isShowRightImg(true);
+        //presenter.setConfigured(true);
         srlWwaDevices.setRefreshing(true);
         presenter.onRefresh();
         presenter.hasData();
@@ -340,7 +337,7 @@ public class WWAFragment extends MvpBaseFragment<WWAPresenter> implements WWACon
     @Override
     public void onResume() {
         super.onResume();
-        presenter.onResume();
+        presenter.onResume(dialog.isShowing());
     }
 
     public static class EsptouchAsyncTask4 extends AsyncTask<byte[], IEsptouchResult, List<IEsptouchResult>> {

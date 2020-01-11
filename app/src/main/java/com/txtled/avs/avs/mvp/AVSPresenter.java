@@ -2,8 +2,14 @@ package com.txtled.avs.avs.mvp;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.location.LocationManager;
 import android.net.nsd.NsdManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -16,12 +22,9 @@ import com.amazon.identity.auth.device.api.authorization.AuthorizationManager;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeListener;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeRequest;
 import com.amazon.identity.auth.device.api.authorization.AuthorizeResult;
-import com.amazon.identity.auth.device.api.authorization.ProfileScope;
 import com.amazon.identity.auth.device.api.authorization.ScopeFactory;
 import com.amazon.identity.auth.device.api.workflow.RequestContext;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.mobileconnectors.cognitoidentityprovider.CognitoUserPool;
-import com.amazonaws.regions.Regions;
 import com.txtled.avs.R;
 import com.txtled.avs.application.MyApplication;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
@@ -31,6 +34,7 @@ import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.mDNS.Mdnser;
 import com.txtled.avs.model.DataManagerModel;
+import com.txtled.avs.model.operate.OperateHelper;
 import com.txtled.avs.utils.Constants;
 import com.txtled.avs.utils.RxUtil;
 import com.txtled.avs.utils.Utils;
@@ -55,9 +59,11 @@ import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
+import static android.content.Context.WIFI_SERVICE;
+import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
+import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
 import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.ALEXA_ALL_SCOPE;
 import static com.txtled.avs.utils.Constants.DEVICE_SERIAL_NUMBER;
@@ -66,6 +72,7 @@ import static com.txtled.avs.utils.Constants.PRODUCT_ID;
 import static com.txtled.avs.utils.Constants.PRODUCT_INSTANCE_ATTRIBUTES;
 import static com.txtled.avs.utils.Constants.RESET_DEVICE;
 import static com.txtled.avs.utils.Constants.SERVICE_TYPE;
+import static com.txtled.avs.utils.Constants.WIFI_NAME;
 
 /**
  * Created by Mr.Quan on 2019/12/10.
@@ -83,12 +90,13 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     private InputStream inStr = null;
     private Disposable readDisposable;
     private Disposable writeDisposable;
+    private Disposable timerDisposable;
     private String mCode;
     private String address;
     private CognitoCachingCredentialsProvider provider;
     private AuthorizeListenerImpl authorizeListener;
     private String readStr;
-
+    private boolean avsSwitch;
 
     @Inject
     public AVSPresenter(DataManagerModel mDataManagerModel) {
@@ -96,13 +104,13 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     }
 
     @Override
-    public void refresh(Activity activity) {
+    public void refresh() {
         if (!Utils.getWifiSSID(activity).contains(Constants.WIFI_NAME)){
             mdnser.ipInfos.clear();
             new getIpAsyncTask().execute();
             view.closeRefresh(3100);
         }else {
-            view.showNetWorkError();
+            view.showNetWorkError(R.string.net_unavailable);
             view.closeRefresh(0);
         }
 
@@ -132,6 +140,76 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
 
         //getCognito
         provider = MyApplication.getCredentialsProvider();
+
+        IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        if (Build.VERSION.SDK_INT == 28) {
+            filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
+        }
+        registerReceiver(mReceiver, filter);
+    }
+
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action == null) {
+                return;
+            }
+
+            WifiManager wifiManager = (WifiManager) context.getApplicationContext()
+                    .getSystemService(WIFI_SERVICE);
+            assert wifiManager != null;
+
+            switch (action) {
+                case WifiManager.NETWORK_STATE_CHANGED_ACTION:
+                case LocationManager.PROVIDERS_CHANGED_ACTION:
+                    onWifiChanged(wifiManager.getConnectionInfo());
+                    break;
+            }
+        }
+    };
+
+    private void onWifiChanged(WifiInfo connectionInfo) {
+        boolean disconnected = connectionInfo == null
+                || connectionInfo.getNetworkId() == -1
+                || "<unknown ssid>".equals(connectionInfo.getSSID());
+        if (disconnected) {
+            String[] permissions = {Constants.permissions[0], Constants.permissions[1]};
+            mDataManagerModel.requestPermissions(activity, permissions,
+                    new OperateHelper.OnPermissionsListener() {
+                @Override
+                public void onSuccess(String name) {
+                    if (name.equals(Constants.permissions[1])) {
+                        if (avsSwitch){
+                            view.showNetWorkError(R.string.net_unavailable);
+                        }else {
+                            view.showNetWorkError(R.string.avs_wifi_available);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure() {
+
+                }
+
+                @Override
+                public void onAskAgain() {
+
+                }
+            });
+
+        } else {
+            if (avsSwitch){
+                view.hidSnackBar();
+            }else {
+                if (connectionInfo.getSSID().contains(WIFI_NAME)){
+                    view.hidSnackBar();
+                }else {
+                    view.showNetWorkError(R.string.avs_wifi_available);
+                }
+            }
+        }
     }
 
     @Override
@@ -145,11 +223,13 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         final String url = "http://" + mdnser.ipInfos.get(position).getHostip();
         address = mdnser.ipInfos.get(position).getHostip();
         mProvisioningClient.setEndpoint(url);
+        readStr = "";
 
         if (socket != null) {
             try {
                 readDisposable.dispose();
                 writeDisposable.dispose();
+                timerDisposable.dispose();
                 socket.close();
                 socket = null;
             } catch (IOException e) {
@@ -157,26 +237,28 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             }
         }
         socket = new Socket();
-        connSocket(true);
+        connSocket(RESET_DEVICE);
     }
 
-    private void connSocket(boolean sendMsg) {
+    private void connSocket(String sendMsg) {
         addSubscribe(Flowable.create((FlowableOnSubscribe<Socket>) e -> {
                     try {
-                        socket.connect(new InetSocketAddress(address, 9000), 3000);
+                        socket.connect(new InetSocketAddress(address, 9000), 2000);
                         inStr = socket.getInputStream();
                         outStr = socket.getOutputStream();
                         e.onNext(socket);
                     } catch (IOException e1) {
-                        e1.printStackTrace();
+                        socket = null;
+                        socket = new Socket();
+                        connSocket(sendMsg);
                     }
                 }, BackpressureStrategy.BUFFER).compose(RxUtil.rxSchedulerHelper())
                         .subscribeWith(new CommonSubscriber<Socket>(view) {
                             @Override
                             public void onNext(Socket socket) {
                                 readSocket();
-                                sendSocket(sendMsg == true ? RESET_DEVICE : GET_CODE);
                                 startTime();
+                                sendSocket(sendMsg);
                             }
                         })
         );
@@ -184,12 +266,13 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
 
     private void startTime() {
 
-        Observable.timer(4,TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+        timerDisposable = Observable.timer(4,TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(time -> {
                     if (readStr == null || readStr.isEmpty()){
                         view.hidProgress();
                         view.showToast(R.string.not_responding);
                         readDisposable.dispose();
+                        writeDisposable.dispose();
                     }
                 });
     }
@@ -208,16 +291,15 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             protected DeviceProvisioningInfo doInBackground(Void... voids) {
                 try {
                     //long startTime = System.currentTimeMillis();
+                    int count = 0;
                     DeviceProvisioningInfo response = mProvisioningClient.getDeviceProvisioningInfo();
-                    //long duration = System.currentTimeMillis() - startTime;
-
-//                    if (duration < MIN_CONNECT_PROGRESS_TIME_MS) {
-//                        try {
-//                            Thread.sleep(MIN_CONNECT_PROGRESS_TIME_MS - duration);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
+                    while (response.getCodeChallenge().length() < 43){
+                        response = mProvisioningClient.getDeviceProvisioningInfo();
+                        count += 1;
+                        if (count == 4){
+                            return null;
+                        }
+                    }
                     return response;
                 } catch (Exception e) {
                     errorInBackground = e;
@@ -283,7 +365,11 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                                 readDisposable.dispose();
                                 socket.close();
                                 view.bindDevice(mCode);
+                                view.hidProgress();
                             } else {
+                                view.hidProgress();
+                                readDisposable.dispose();
+                                view.showToast(R.string.not_responding);
                                 Utils.Logger(TAG, "Other:", readStr);
                             }
                         }
@@ -340,13 +426,21 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                 writeDisposable = null;
             }
             mRequestContext.unregisterListener(authorizeListener);
+            unregisterReceiver(mReceiver);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    @Override
+    public void setSwitch(boolean avsSwitch) {
+        this.avsSwitch = avsSwitch;
+        WifiManager wifiManager = (WifiManager) activity.getApplicationContext()
+                .getSystemService(WIFI_SERVICE);
+        onWifiChanged(wifiManager.getConnectionInfo());
+    }
+
     class getIpAsyncTask extends AsyncTask {
-        @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
         @Override
         protected Object doInBackground(Object[] objects) {
 
@@ -385,7 +479,28 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
             final String sessionId = mDeviceProvisioningInfo.getSessionId();
             //Utils.Logger(TAG,"userId:",authorizeResult.getUser().getUserId());
             String token = authorizeResult.getAccessToken();
-
+//            try {
+//
+//                URL url = new URL("https://www.amazon.com/ap/oa?client_id="+clientId+"&scope=alexa::skills:account_linking&response_type=code");//redirect_uri=https://ww.txtled.avs&  &state=VFJVRQ
+//
+//                HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
+//                connection.addRequestProperty("Content-Type", "application/json");//application/x-www-form-urlencoded;charset=UTF-8
+//                connection.setRequestMethod("GET");
+////                connection.setDoOutput(true);
+////                String data = "grant_type=authorization_code&code="+authorizationCode+
+////                        "&redirect_uri="+redirectUri+"&client_id="+clientId+"&code_verifier="+mDeviceProvisioningInfo.getCodeChallenge();
+////                outputStream = new DataOutputStream(connection.getOutputStream());
+////                outputStream.write(data.getBytes());
+////                outputStream.flush();
+////                outputStream.close();
+//
+//                inputStream = connection.getInputStream();
+//
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             //authorizeResult.getUser().getUserId();
             if (null != token) {
 
@@ -435,8 +550,7 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                         //loginSuccessState();
                         Log.e("TAG", "Login success");
                         socket = new Socket();
-                        connSocket(false);
-                        view.hidProgress();
+                        connSocket(GET_CODE);
                     }
                 }
             }.execute();

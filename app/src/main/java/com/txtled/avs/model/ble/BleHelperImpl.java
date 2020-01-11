@@ -257,11 +257,8 @@ public class BleHelperImpl implements BleHelper {
             }
 
             mBleClient.write(mAddress, mServiceUUID, mSendCharacterUUID, sendData,
-                    new BleWriteResponse() {
-                        @Override
-                        public void onResponse(int code) {
+                    code -> {
 
-                        }
                     });
 
         }

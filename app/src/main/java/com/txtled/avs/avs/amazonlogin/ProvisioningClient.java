@@ -50,39 +50,44 @@ public class ProvisioningClient {
         HttpURLConnection connection = (HttpURLConnection) companionInfoEndpoint.openConnection();
 
         JSONObject response = doRequest(connection);
-        List<String> missingParameters = new ArrayList<String>();
-        if (!response.has(AuthConstants.PRODUCT_ID)) {
-            missingParameters.add(AuthConstants.PRODUCT_ID);
+        if (response == null){
+            return new DeviceProvisioningInfo("","","","","");
+        }else {
+            List<String> missingParameters = new ArrayList<String>();
+            if (!response.has(AuthConstants.PRODUCT_ID)) {
+                missingParameters.add(AuthConstants.PRODUCT_ID);
+            }
+
+            if (!response.has(AuthConstants.DSN)) {
+                missingParameters.add(AuthConstants.DSN);
+            }
+
+            if (!response.has(AuthConstants.SESSION_ID)) {
+                missingParameters.add(AuthConstants.SESSION_ID);
+            }
+
+            if (!response.has(AuthConstants.CODE_CHALLENGE)) {
+                missingParameters.add(AuthConstants.CODE_CHALLENGE);
+            }
+
+            if (!response.has(AuthConstants.CODE_CHALLENGE_METHOD)) {
+                missingParameters.add(AuthConstants.CODE_CHALLENGE_METHOD);
+            }
+
+            if (missingParameters.size() != 0) {
+                throw new DeviceProvisioningInfo.MissingParametersException(missingParameters);
+            }
+
+            String productId = response.getString(AuthConstants.PRODUCT_ID);
+            String dsn = response.getString(AuthConstants.DSN);
+            String sessionId = response.getString(AuthConstants.SESSION_ID);
+            String codeChallenge = response.getString(AuthConstants.CODE_CHALLENGE);
+            String codeChallengeMethod = response.getString(AuthConstants.CODE_CHALLENGE_METHOD);
+
+            DeviceProvisioningInfo ret = new DeviceProvisioningInfo(productId, dsn, sessionId, codeChallenge, codeChallengeMethod);
+            return ret;
         }
 
-        if (!response.has(AuthConstants.DSN)) {
-            missingParameters.add(AuthConstants.DSN);
-        }
-
-        if (!response.has(AuthConstants.SESSION_ID)) {
-            missingParameters.add(AuthConstants.SESSION_ID);
-        }
-
-        if (!response.has(AuthConstants.CODE_CHALLENGE)) {
-            missingParameters.add(AuthConstants.CODE_CHALLENGE);
-        }
-
-        if (!response.has(AuthConstants.CODE_CHALLENGE_METHOD)) {
-            missingParameters.add(AuthConstants.CODE_CHALLENGE_METHOD);
-        }
-
-        if (missingParameters.size() != 0) {
-            throw new DeviceProvisioningInfo.MissingParametersException(missingParameters);
-        }
-
-        String productId = response.getString(AuthConstants.PRODUCT_ID);
-        String dsn = response.getString(AuthConstants.DSN);
-        String sessionId = response.getString(AuthConstants.SESSION_ID);
-        String codeChallenge = response.getString(AuthConstants.CODE_CHALLENGE);
-        String codeChallengeMethod = response.getString(AuthConstants.CODE_CHALLENGE_METHOD);
-
-        DeviceProvisioningInfo ret = new DeviceProvisioningInfo(productId, dsn, sessionId, codeChallenge, codeChallengeMethod);
-        return ret;
     }
 
     public void postCompanionProvisioningInfo(CompanionProvisioningInfo companionProvisioningInfo) throws IOException, JSONException {
@@ -148,11 +153,11 @@ public class ProvisioningClient {
                 response = connection.getErrorStream();
                 if (response != null) {
                     String responseString = IOUtils.toString(response);
-                    throw new RuntimeException(responseString);
+                    return null;
                 }
             }
             e.printStackTrace();
-            throw e;
+            return null;
         } finally {
             IOUtils.closeQuietly(outputStream);
             IOUtils.closeQuietly(response);

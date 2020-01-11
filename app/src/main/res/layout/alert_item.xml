@@ -21,7 +21,6 @@
         android:gravity="center"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/til_alert_input"
-        android:layout_marginLeft="@dimen/dp_12_x"
         android:layout_marginBottom="@dimen/dp_12_x"
         android:hint="@string/wake_up_hint"/>
 </RelativeLayout>

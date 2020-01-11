@@ -30,6 +30,7 @@
     <string name="net_unavailable">Network unavailable,please use configured NetWork.</string>
     <string name="avs_success">AVS configure is successful</string>
     <string name="avs_device_lists">AVS Device Lists</string>
+    <string name="avs_wifi_available">Please connect to the network that belongs to AVS.</string>
 
     //wwa
     <string name="menu_item_about">About App</string>

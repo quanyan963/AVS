@@ -6,7 +6,7 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.txtled.avs.R;
-import com.txtled.avs.avs.listener.OnSearchListener;
 import com.txtled.avs.avs.mvp.AVSContract;
 import com.txtled.avs.avs.mvp.AVSPresenter;
 import com.txtled.avs.base.MvpBaseFragment;
@@ -53,7 +52,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     SwipeRefreshLayout sflAcsRefresh;
     @BindView(R.id.tv_avs_bind)
     TextView tvAvsBind;
-//    @BindView(R.id.pb_avs_loading)
+    //    @BindView(R.id.pb_avs_loading)
 //    ProgressBar pbAvsLoading;
     @BindView(R.id.tv_avs_code)
     TextView tvAvsCode;
@@ -61,6 +60,12 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     RelativeLayout rlAvsBind;
     @BindView(R.id.tv_avs_code_hint)
     TextView tvAvsCodeHint;
+    @BindView(R.id.rl_avs_wifi)
+    RelativeLayout rlAvsWifi;
+    @BindView(R.id.rl_avs_search)
+    RelativeLayout rlAvsSearch;
+    @BindView(R.id.iv_avs_refresh)
+    ImageView ivAvsRefresh;
     private AVSAdapter adapter;
     private AlertDialog dialog;
 
@@ -71,7 +76,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public View initView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_avs, null);
+        return inflater.inflate(R.layout.fragment_avs, container, false);
     }
 
     @Override
@@ -82,14 +87,14 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         //pbAvsLoading.setVisibility(View.GONE);
         tvAvsWifi.setOnClickListener(this);
         tvAvsBind.setOnClickListener(this);
-
+        ivAvsRefresh.setOnClickListener(this);
         rlvAvsList.setHasFixedSize(true);
         rlvAvsList.setLayoutManager(new LinearLayoutManager(getContext()));
 
         adapter.setListener(this);
 
         sflAcsRefresh.setOnRefreshListener(this);
-        dialog = AlertUtils.showLoadingDialog(getContext(),R.layout.alert_progress);
+        dialog = AlertUtils.showLoadingDialog(getContext(), R.layout.alert_progress);
     }
 
     @Override
@@ -100,15 +105,13 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
                 ((MainActivity) getActivity()).getWifiSSID();
                 break;
             case R.id.tv_avs_bind:
-//                Uri uri = Uri.parse(BIND_URL);
-//                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//                startActivity(intent);
-//                bindSuccess();
-
                 Intent intent = new Intent(getActivity(), WebViewActivity.class);
                 intent.putExtra(WEB_URL, BIND_URL);
                 startActivityForResult(intent, REQUEST_CODE_INTERNET_SETTINGS);
-
+                break;
+            case R.id.iv_avs_refresh:
+                sflAcsRefresh.setRefreshing(true);
+                presenter.refresh();
                 break;
         }
     }
@@ -171,18 +174,19 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void hidProgress() {
-        if (dialog != null && dialog.isShowing()){
+        if (dialog != null && dialog.isShowing()) {
             getActivity().runOnUiThread(() -> dialog.dismiss());
         }
         //pbAvsLoading.setVisibility(View.GONE);
     }
 
     @Override
-    public void showNetWorkError() {
-        ((MainActivity)getActivity()).showSnackBar(sflAcsRefresh, R.string.net_unavailable, R.string.go, v -> {
+    public void showNetWorkError(int str) {
+        hidSnackBar();
+        ((MainActivity) getActivity()).showSnackBar(sflAcsRefresh, str, R.string.go, v -> {
             Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
             startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-            ((MainActivity)getActivity()).hideSnackBar();
+            hidSnackBar();
         });
     }
 
@@ -199,7 +203,15 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void showToast(int msg) {
-        Toast.makeText(getContext(),msg,Toast.LENGTH_LONG).show();
+        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void hidSnackBar() {
+        if (((MainActivity) getActivity()).snackbar != null &&
+                ((MainActivity) getActivity()).snackbar.isShown()) {
+            ((MainActivity) getActivity()).hideSnackBar();
+        }
     }
 
     public void bindSuccess() {
@@ -218,7 +230,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void onRefresh() {
-        presenter.refresh(getActivity());
+        presenter.refresh();
 
     }
 
@@ -234,5 +246,16 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         presenter.destroy();
         dialog = null;
         super.onDestroy();
+    }
+
+    public void changeResetView(boolean avsSwitch) {
+        presenter.setSwitch(avsSwitch);
+        if (avsSwitch) {
+            rlAvsWifi.setVisibility(View.GONE);
+            rlAvsSearch.setVisibility(View.VISIBLE);
+        } else {
+            rlAvsSearch.setVisibility(View.GONE);
+            rlAvsWifi.setVisibility(View.VISIBLE);
+        }
     }
 }

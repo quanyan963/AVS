@@ -1,24 +1,12 @@
 package com.txtled.avs.bean;
 
-import org.greenrobot.greendao.annotation.Entity;
-import org.greenrobot.greendao.annotation.Generated;
-import org.greenrobot.greendao.annotation.Id;
-import org.greenrobot.greendao.annotation.Index;
-
 import java.io.Serializable;
 
 /**
  * Created by Mr.Quan on 2019/12/24.
  */
 
-@Entity(
-        indexes = {@Index(value = "ip DESC", unique = true)}
-)
 public class WWADeviceInfo implements Serializable {
-    static final long serialVersionUID = 42L;
-
-    @Id
-    private Long id;
 
     private String ip;//设备ip地址
 
@@ -36,25 +24,13 @@ public class WWADeviceInfo implements Serializable {
 
     private String friendlyNames;//用户对应名称
 
-    public WWADeviceInfo() {
-    }
+    private String ver;//avs版本号
 
-    @Generated(hash = 1459644242)
-    public WWADeviceInfo(Long id, String ip, String netMask, String gw, String host, String port,
-            String cid, String thing, String friendlyNames) {
-        this.id = id;
-        this.ip = ip;
-        this.netMask = netMask;
-        this.gw = gw;
-        this.host = host;
-        this.port = port;
-        this.cid = cid;
-        this.thing = thing;
-        this.friendlyNames = friendlyNames;
+   public WWADeviceInfo() {
     }
 
     public WWADeviceInfo(String ip, String netMask, String gw, String host, String port
-            , String cid, String thing, String friendlyNames) {
+            , String cid, String thing, String friendlyNames, String ver) {
         this.ip = ip;
         this.netMask = netMask;
         this.gw = gw;
@@ -63,6 +39,7 @@ public class WWADeviceInfo implements Serializable {
         this.cid = cid;
         this.thing = thing;
         this.friendlyNames = friendlyNames;
+        this.ver = ver;
     }
 
     public String getFriendlyNames() {
@@ -129,11 +106,11 @@ public class WWADeviceInfo implements Serializable {
         this.thing = thing;
     }
 
-    public Long getId() {
-        return this.id;
+    public String getVer() {
+        return this.ver;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setVer(String ver) {
+        this.ver = ver;
     }
 }

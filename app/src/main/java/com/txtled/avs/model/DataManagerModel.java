@@ -2,11 +2,9 @@ package com.txtled.avs.model;
 
 
 import android.app.Activity;
-import android.content.Context;
 
 
 import com.txtled.avs.bean.WWADeviceInfo;
-import com.txtled.avs.bean.WWAInfo;
 import com.txtled.avs.model.ble.BleHelper;
 import com.txtled.avs.model.db.DBHelper;
 import com.txtled.avs.model.net.NetHelper;
@@ -14,8 +12,6 @@ import com.txtled.avs.model.operate.OperateHelper;
 import com.txtled.avs.model.prefs.PreferencesHelper;
 
 import java.util.List;
-
-import io.reactivex.Flowable;
 
 /**
  * Created by Mr.Quan on 2018/4/17.
@@ -73,16 +69,6 @@ public class DataManagerModel implements DBHelper, PreferencesHelper, NetHelper,
     }
 
     @Override
-    public boolean isConfigured() {
-        return mPreferencesHelper.isConfigured();
-    }
-
-    @Override
-    public void setIsConfigured(boolean configured) {
-        mPreferencesHelper.setIsConfigured(configured);
-    }
-
-    @Override
     public void setUserId(String userId) {
         mPreferencesHelper.setUserId(userId);
     }
@@ -102,23 +88,23 @@ public class DataManagerModel implements DBHelper, PreferencesHelper, NetHelper,
         return mPreferencesHelper.getUid();
     }
 
-    @Override
-    public void insertWWAInfo(List<WWADeviceInfo> infoList) {
-        mDBDbHelper.insertWWAInfo(infoList);
-    }
-
-    @Override
-    public List<WWADeviceInfo> getWWAInfo() {
-        return mDBDbHelper.getWWAInfo();
-    }
-
-    @Override
-    public void deleteWWAInfo() {
-        mDBDbHelper.deleteWWAInfo();
-    }
-
-    @Override
-    public void upDataWWAInfo(WWADeviceInfo info) {
-        mDBDbHelper.upDataWWAInfo(info);
-    }
+//    @Override
+//    public void insertWWAInfo(List<WWADeviceInfo> infoList) {
+//        mDBDbHelper.insertWWAInfo(infoList);
+//    }
+//
+//    @Override
+//    public List<WWADeviceInfo> getWWAInfo() {
+//        return mDBDbHelper.getWWAInfo();
+//    }
+//
+//    @Override
+//    public void deleteWWAInfo() {
+//        mDBDbHelper.deleteWWAInfo();
+//    }
+//
+//    @Override
+//    public void upDataWWAInfo(WWADeviceInfo info) {
+//        mDBDbHelper.upDataWWAInfo(info);
+//    }
 }

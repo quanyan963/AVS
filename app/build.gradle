@@ -1,15 +1,23 @@
 apply plugin: 'com.android.application'
-apply plugin: 'org.greenrobot.greendao'
+//apply plugin: 'org.greenrobot.greendao'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('D:\\android\\projects\\AVS\\app\\avswwa.jks')
+            storePassword '123456'
+            keyAlias = '123456'
+            keyPassword '123456'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.1"
     defaultConfig {
         applicationId "com.txtled.avs"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
-        versionName "1.0.2"
+        versionName "1.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -23,9 +31,11 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
+            buildConfigField "boolean", "LOG_DEBUG", "false" //不显示log
+            minifyEnabled true
+            //shrinkResources true
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -41,11 +51,11 @@ android {
         exclude 'META-INF/NOTICE.txt'
     }
 
-    greendao {
-        schemaVersion 6
-        daoPackage 'com.txtled.avs.bean.dao'
-        targetGenDir 'src/main/java'
-    }
+//    greendao {
+//        schemaVersion 7
+//        daoPackage 'com.txtled.avs.bean.dao'
+//        targetGenDir 'src/main/java'
+//    }
 
 }
 
@@ -65,13 +75,13 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.1.2'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     //event bus
-    implementation 'org.greenrobot:eventbus:3.0.0'
+    //implementation 'org.greenrobot:eventbus:3.0.0'
     //implementation files('libs/universal-image-loader-1.9.5.jar')
     implementation 'org.glassfish:javax.annotation:10.0-b28'
     //权限
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.4@aar'
     //sql
-    implementation 'org.greenrobot:greendao:3.2.2'
+    //implementation 'org.greenrobot:greendao:3.2.2'
 
     //design
     implementation 'com.google.android.material:material:1.0.0'
@@ -89,17 +99,17 @@ dependencies {
 
     //aws iot
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.2'
-    implementation 'com.amazonaws:aws-android-sdk-iot:2.+'
+    implementation 'com.amazonaws:aws-android-sdk-iot:2.16.6'
     // https://mvnrepository.com/artifact/com.amazonaws/aws-android-sdk-core
-    implementation 'com.amazonaws:aws-android-sdk-core:2.+'
+    implementation 'com.amazonaws:aws-android-sdk-core:2.16.6'
 
     //ddb
-    implementation 'com.amazonaws:aws-android-sdk-ddb:2.+'
-    implementation 'com.amazonaws:aws-android-sdk-ddb-mapper:2.+'
+    implementation "com.amazonaws:aws-android-sdk-ddb:2.16.6"
+    implementation 'com.amazonaws:aws-android-sdk-ddb-mapper:2.16.6'
 
     //cognito
-    implementation 'com.amazonaws:aws-android-sdk-cognito:2.+'
-    implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.+'
+    implementation 'com.amazonaws:aws-android-sdk-cognito:2.16.6'
+    implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.16.6'
 
 //    // Mobile Client for initializing the SDK
 //    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.7.+@aar') { transitive = true }

@@ -85,6 +85,8 @@ import static android.content.Context.WIFI_SERVICE;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
 import static com.txtled.avs.utils.Constants.CA;
+import static com.txtled.avs.utils.Constants.DB_NAME;
+import static com.txtled.avs.utils.Constants.DISCOVERY;
 import static com.txtled.avs.utils.Constants.FRIENDLY_NAME;
 import static com.txtled.avs.utils.Constants.REBOOT;
 import static com.txtled.avs.utils.Constants.REST_API;
@@ -94,10 +96,8 @@ import static com.txtled.avs.utils.Constants.SEND_CERT_ONE;
 import static com.txtled.avs.utils.Constants.SEND_CERT_TWO;
 import static com.txtled.avs.utils.Constants.SEND_KEY_ONE;
 import static com.txtled.avs.utils.Constants.SEND_KEY_TWO;
-import static com.txtled.avs.utils.Constants.THING_DIR;
-import static com.txtled.avs.utils.Constants.DB_NAME;
-import static com.txtled.avs.utils.Constants.DISCOVERY;
 import static com.txtled.avs.utils.Constants.SEND_THING_NAME;
+import static com.txtled.avs.utils.Constants.THING_DIR;
 import static com.txtled.avs.utils.Constants.USER_ID;
 import static com.txtled.avs.utils.ForUse.ACCESS_KEY;
 import static com.txtled.avs.utils.ForUse.SECRET_ACCESS_KEY;
@@ -229,16 +229,6 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     }
 
     @Override
-    public boolean getIsConfigured() {
-        return mDataManagerModel.isConfigured();
-    }
-
-    @Override
-    public void setConfigured(boolean b) {
-        mDataManagerModel.setIsConfigured(b);
-    }
-
-    @Override
     public void onRefresh() {
         //获取wifi服务
         WifiManager wifiManager = (WifiManager) context.getApplicationContext()
@@ -273,7 +263,8 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                             deviceInfo.optString("port"),
                             deviceInfo.optString("cid"),
                             deviceInfo.optString("thing"),
-                            deviceInfo.optString("friendlyname")
+                            deviceInfo.optString("friendlyname"),
+                            deviceInfo.optString("ver")
                     );
                     refreshData.add(info);
                     setTime();
@@ -295,7 +286,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
                             view.setData(refreshData);
-                            mDataManagerModel.insertWWAInfo(refreshData);
+                            //mDataManagerModel.insertWWAInfo(refreshData);
                             udpBuild.stopUDPSocket();
                         }
                 );
@@ -373,7 +364,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
             view.showLoadingView();
             AuthorizationManager.authorize(
                     new AuthorizeRequest.Builder(mRequestContext)
-                            .addScopes(ProfileScope.profile())
+                            .addScopes(ProfileScope.profile(),ProfileScope.postalCode())
                             .build()
             );
             return false;
@@ -384,8 +375,16 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
     }
 
     @Override
-    public void onResume() {
+    public void onResume(boolean isShowing) {
         mRequestContext.onResume();
+        if (isShowing){
+            Observable.timer(4, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
+                        if (userId.equals("")){
+                            view.hidLoadingView();
+                        }
+                    });
+        }
     }
 
     @Override
@@ -779,6 +778,8 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         @Override
         public void onSuccess(final AuthorizeResult authorizeResult) {
             //Utils.Logger(TAG,"userId:",authorizeResult.getUser().getUserId());
+            String[] values = authorizeResult.getUser().getUserId().split("\\.");
+            userId = values[values.length - 1];
             String token = authorizeResult.getAccessToken();
 
             //authorizeResult.getUser().getUserId();
@@ -795,8 +796,6 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                 /* The user is not signed in */
 
             }
-            String[] values = authorizeResult.getUser().getUserId().split("\\.");
-            userId = values[values.length - 1];
             mDataManagerModel.setUserId(userId);
             view.setUserId(userId);
             view.hidLoadingView();
@@ -804,12 +803,14 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
         @Override
         public void onError(final AuthError authError) {
+            view.hidLoadingView();
             Log.e(TAG, "AuthError during authorization", authError);
             //activity.runOnUiThread(() -> view.showAlertDialog(authError));
         }
 
         @Override
         public void onCancel(final AuthCancellation authCancellation) {
+            view.hidLoadingView();
             Log.e(TAG, "User cancelled authorization");
             //view.hidProgress();
         }

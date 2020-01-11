@@ -67,10 +67,6 @@ public interface WWAContract {
 
         void executeTask(WWAFragment wwaFragment, byte[] ssid, byte[] bssid, byte[] password, byte[] deviceCount, byte[] broadcast);
 
-        boolean getIsConfigured();
-
-        void setConfigured(boolean b);
-
         void onRefresh();
 
         void hasData();
@@ -81,7 +77,7 @@ public interface WWAContract {
 
         boolean checkUserHasLogin();
 
-        void onResume();
+        void onResume(boolean isShowing);
 
         String geUserId();
     }

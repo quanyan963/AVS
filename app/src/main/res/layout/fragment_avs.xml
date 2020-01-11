@@ -7,14 +7,11 @@
     <RelativeLayout
         android:id="@+id/rl_avs_wifi"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@drawable/background_white"
-        android:layout_marginTop="@dimen/dp_12_x"
-        android:layout_marginLeft="@dimen/dp_12_x"
-        android:layout_marginRight="@dimen/dp_12_x">
+        android:layout_margin="@dimen/dp_12_x">
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tv_avs_wifi"
-            android:layout_alignParentTop="true"
             android:layout_centerInParent="true"
             style="@style/main_tv"
             android:textColor="@color/colorPrimary"
@@ -33,17 +30,26 @@
             android:hint="@string/avs_wifi_hint" />
     </RelativeLayout>
     <RelativeLayout
+        android:id="@+id/rl_avs_search"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="@dimen/dp_12_x"
-        android:layout_below="@+id/rl_avs_wifi"
-        android:background="@drawable/background_white">
+        android:background="@drawable/background_white"
+        android:visibility="gone">
         <TextView
             android:id="@+id/tv_avs_devices"
             style="@style/main_tv"
             android:text="@string/avs_device_lists"
-            android:padding="@dimen/dp_6_x"
-            android:layout_centerHorizontal="true"/>
+            android:padding="@dimen/dp_6_x" />
+
+        <ImageView
+            android:id="@+id/iv_avs_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/refresh"
+            android:layout_alignParentRight="true"
+            android:padding="@dimen/dp_8_x"
+            android:background="?android:attr/selectableItemBackgroundBorderless"/>
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/sfl_acs_refresh"
             android:layout_width="match_parent"
@@ -92,11 +98,5 @@
                 android:text="@string/bind_device"
                 android:layout_below="@+id/tv_avs_code_hint" />
         </RelativeLayout>
-<!--        <ProgressBar-->
-<!--            android:id="@+id/pb_avs_loading"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_centerInParent="true"-->
-<!--            android:visibility="gone"/>-->
     </RelativeLayout>
 </RelativeLayout>

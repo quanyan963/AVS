@@ -14,7 +14,6 @@ import java.util.Arrays;
 public class UDPSocketServer {
     private static final String TAG = "UDPSocketServer";
     private DatagramSocket mServerSocket;
-    private Context mContext;
     private WifiManager.MulticastLock mLock;
     private volatile boolean mIsClosed;
 
@@ -26,7 +25,6 @@ public class UDPSocketServer {
      * @param context       the context of the Application
      */
     public UDPSocketServer(int port, int socketTimeout, Context context) {
-        this.mContext = context;
         try {
             this.mServerSocket = new DatagramSocket(null);
             this.mServerSocket.setReuseAddress(true);
@@ -37,7 +35,7 @@ public class UDPSocketServer {
             e.printStackTrace();
         }
         this.mIsClosed = false;
-        WifiManager manager = (WifiManager) mContext.getApplicationContext()
+        WifiManager manager = (WifiManager) context.getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
         mLock = manager.createMulticastLock("test wifi");
         Log.d(TAG, "mServerSocket is created, socket read timeout: "

@@ -49,7 +49,19 @@
         <activity android:name=".main.MainActivity"
             android:configChanges="layoutDirection|locale"
             android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
 
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- 在data里设置了scheme和host，则该Activity可以接收和处理类似于"scheme://data/XXX"的链接 -->
+                <data
+                    android:host="com.txtled.avs"
+                    android:scheme="avs"
+                    android:path="/code"
+                    android:port="200"/>
+            </intent-filter>
         </activity>
 
         <activity android:name=".web.WebViewActivity"
