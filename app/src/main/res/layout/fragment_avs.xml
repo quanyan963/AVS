@@ -11,6 +11,13 @@
         android:background="@drawable/background_white"
         android:layout_margin="@dimen/dp_12_x">
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/tv_zxing"
+            style="@style/main_tv"
+            android:layout_centerInParent="true"
+            android:layout_above="@+id/tv_avs_wifi"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/scan_qr_code"/>
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/tv_avs_wifi"
             android:layout_centerInParent="true"
             style="@style/main_tv"

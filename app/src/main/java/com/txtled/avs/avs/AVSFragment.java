@@ -18,12 +18,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.txtled.avs.R;
 import com.txtled.avs.avs.mvp.AVSContract;
 import com.txtled.avs.avs.mvp.AVSPresenter;
 import com.txtled.avs.base.MvpBaseFragment;
 import com.txtled.avs.bean.DeviceHostInfo;
 import com.txtled.avs.main.MainActivity;
+import com.txtled.avs.qr.QrActivity;
 import com.txtled.avs.utils.AlertUtils;
 import com.txtled.avs.web.WebViewActivity;
 
@@ -34,6 +38,7 @@ import butterknife.BindView;
 import static com.txtled.avs.utils.Constants.BIND_URL;
 import static com.txtled.avs.utils.Constants.BUNDLE_KEY_EXCEPTION;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_INTERNET_SETTINGS;
+import static com.txtled.avs.utils.Constants.REQUEST_CODE_QR;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 import static com.txtled.avs.utils.Constants.WEB_URL;
 
@@ -66,6 +71,8 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     RelativeLayout rlAvsSearch;
     @BindView(R.id.iv_avs_refresh)
     ImageView ivAvsRefresh;
+    @BindView(R.id.tv_zxing)
+    MaterialButton tvZxing;
     private AVSAdapter adapter;
     private AlertDialog dialog;
 
@@ -89,6 +96,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         tvAvsBind.setOnClickListener(this);
         ivAvsRefresh.setOnClickListener(this);
         rlvAvsList.setHasFixedSize(true);
+        tvZxing.setOnClickListener(this);
         rlvAvsList.setLayoutManager(new LinearLayoutManager(getContext()));
 
         adapter.setListener(this);
@@ -113,14 +121,26 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
                 sflAcsRefresh.setRefreshing(true);
                 presenter.refresh();
                 break;
+            case R.id.tv_zxing:
+                IntentIntegrator intentIntegrator = IntentIntegrator.forSupportFragment(this);
+                intentIntegrator.setOrientationLocked(false);
+                intentIntegrator.setCaptureActivity(QrActivity.class); // 设置自定义的activity是QRActivity
+                intentIntegrator.setRequestCode(REQUEST_CODE_QR);
+                intentIntegrator.initiateScan();
+                break;
         }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        //super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_INTERNET_SETTINGS) {
             bindSuccess();
+        }else if (requestCode == REQUEST_CODE_QR){
+            //扫描结果
+            IntentResult scanResult = IntentIntegrator.parseActivityResult(resultCode, data);
+            final String qrContent = scanResult.getContents();
+            Toast.makeText(getContext(), "扫描结果:" + qrContent, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -191,8 +211,8 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     }
 
     @Override
-    public void closeRefresh(int i) {
-        sflAcsRefresh.postDelayed(() -> sflAcsRefresh.setRefreshing(false), i);
+    public void closeRefresh() {
+        getActivity().runOnUiThread(() -> sflAcsRefresh.setRefreshing(false));
     }
 
     @Override
@@ -203,7 +223,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     @Override
     public void showToast(int msg) {
-        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+        getActivity().runOnUiThread(() -> Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show());
     }
 
     @Override
@@ -212,6 +232,17 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
                 ((MainActivity) getActivity()).snackbar.isShown()) {
             ((MainActivity) getActivity()).hideSnackBar();
         }
+    }
+
+    @Override
+    public void showSnack(int str) {
+        getActivity().runOnUiThread(() -> {
+            hidProgress();
+            hidSnackBar();
+            ((MainActivity) getActivity()).showSnackBar(sflAcsRefresh, str,
+                    R.string.ok, v -> hidSnackBar());
+        });
+
     }
 
     public void bindSuccess() {

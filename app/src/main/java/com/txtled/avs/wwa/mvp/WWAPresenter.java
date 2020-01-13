@@ -286,7 +286,6 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         timeCount = Observable.timer(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(aLong -> {
                             view.setData(refreshData);
-                            //mDataManagerModel.insertWWAInfo(refreshData);
                             udpBuild.stopUDPSocket();
                         }
                 );
@@ -660,18 +659,18 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         //创建事物
         iotThing = awsIot.createThing(new CreateThingRequest()
                 .withThingName(mDataManagerModel.getUid()+"_"+System.currentTimeMillis()));
-        Utils.Logger(TAG, "CreateThingResult:", "\nthingArn:" + iotThing.getThingArn()
-                + "\nname:" + iotThing.getThingName() + "\nid:" + iotThing.getThingId());
+//        Utils.Logger(TAG, "CreateThingResult:", "\nthingArn:" + iotThing.getThingArn()
+//                + "\nname:" + iotThing.getThingName() + "\nid:" + iotThing.getThingId());
         //创建证书
         keysAndCertificate = awsIot
                 .createKeysAndCertificate(new CreateKeysAndCertificateRequest()
                         .withSetAsActive(true));
-        Utils.Logger(TAG, "KeysAndCertificateResult:",
-                "\narn:" + keysAndCertificate.getCertificateArn()
-                        + "\nCertificateId:" + keysAndCertificate.getCertificateId()
-                        + "\nCertificatePem:" + keysAndCertificate.getCertificatePem()
-                        + "\nPrivateKey:" + keysAndCertificate.getKeyPair().getPrivateKey()
-                        + "\nPublicKey:" + keysAndCertificate.getKeyPair().getPublicKey());
+//        Utils.Logger(TAG, "KeysAndCertificateResult:",
+//                "\narn:" + keysAndCertificate.getCertificateArn()
+//                        + "\nCertificateId:" + keysAndCertificate.getCertificateId()
+//                        + "\nCertificatePem:" + keysAndCertificate.getCertificatePem()
+//                        + "\nPrivateKey:" + keysAndCertificate.getKeyPair().getPrivateKey()
+//                        + "\nPublicKey:" + keysAndCertificate.getKeyPair().getPublicKey());
         //关联证书
         awsIot.attachThingPrincipal(new AttachThingPrincipalRequest()
                 .withThingName(iotThing.getThingName())

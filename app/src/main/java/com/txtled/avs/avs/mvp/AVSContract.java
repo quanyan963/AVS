@@ -27,13 +27,15 @@ public interface AVSContract {
 
         void showNetWorkError(int str);
 
-        void closeRefresh(int i);
+        void closeRefresh();
 
         void showLoadingView();
 
         void showToast(int not_responding);
 
         void hidSnackBar();
+
+        void showSnack(int str);
     }
 
     interface Presenter extends BasePresenter<View> {

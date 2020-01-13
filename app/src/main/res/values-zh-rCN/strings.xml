@@ -31,6 +31,8 @@
     <string name="avs_success">AVS配置完成</string>
     <string name="avs_device_lists">AVS 设备列表</string>
     <string name="avs_wifi_available">请连接至属于AVS的网络。</string>
+    <string name="scan_qr_code">扫描二维码</string>
+    <string name="fail_login">登录失败，请重试。</string>
 
     //wwa
     <string name="menu_item_about">关于App</string>
@@ -71,7 +73,8 @@
     <string name="change_name">更名</string>
     <string name="changing">更改中…</string>
     <string name="complete_change">更改成功</string>
-    <string name="not_responding">设备无响应。</string>
+    <string name="not_responding">AVS设备无响应。</string>
+
 
 
 </resources>

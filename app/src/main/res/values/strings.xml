@@ -31,6 +31,8 @@
     <string name="avs_success">AVS configure is successful</string>
     <string name="avs_device_lists">AVS Device Lists</string>
     <string name="avs_wifi_available">Please connect to the network that belongs to AVS.</string>
+    <string name="scan_qr_code">Scan Qr code</string>
+    <string name="fail_login">Fail to login, please try again.</string>
 
     //wwa
     <string name="menu_item_about">About App</string>

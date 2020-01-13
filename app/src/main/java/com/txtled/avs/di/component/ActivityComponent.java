@@ -6,6 +6,7 @@ import com.txtled.avs.cognito.AuthenticatorActivity;
 import com.txtled.avs.di.module.ActivityModule;
 import com.txtled.avs.di.scope.ActivityScope;
 import com.txtled.avs.main.MainActivity;
+import com.txtled.avs.qr.QrActivity;
 import com.txtled.avs.start.StartActivity;
 import com.txtled.avs.web.WebViewActivity;
 
@@ -28,4 +29,6 @@ public interface ActivityComponent {
     void inject(WebViewActivity webViewActivity);
 
     void inject(AuthenticatorActivity authenticatorActivity);
+
+    void inject(QrActivity qrActivity);
 }

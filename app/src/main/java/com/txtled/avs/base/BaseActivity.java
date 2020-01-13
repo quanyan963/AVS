@@ -27,6 +27,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     Toolbar toolbar;
     public Snackbar snackbar;
     private ImageView ivRight;
+    public Bundle savedInstanceState;
 
     public abstract void init();
 
@@ -34,7 +35,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        this.savedInstanceState = savedInstanceState;
         super.onCreate(savedInstanceState);
         setContentView(getLayout());
         ButterKnife.bind(this);

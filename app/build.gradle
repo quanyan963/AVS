@@ -111,6 +111,9 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-cognito:2.16.6'
     implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.16.6'
 
+    //添加Zxing依赖
+    implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
+
 //    // Mobile Client for initializing the SDK
 //    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.7.+@aar') { transitive = true }
 //

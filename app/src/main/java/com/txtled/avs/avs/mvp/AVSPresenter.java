@@ -1,6 +1,5 @@
 package com.txtled.avs.avs.mvp;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,10 +9,7 @@ import android.location.LocationManager;
 import android.net.nsd.NsdManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import com.amazon.identity.auth.device.AuthError;
@@ -107,11 +103,25 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     public void refresh() {
         if (!Utils.getWifiSSID(activity).contains(Constants.WIFI_NAME)){
             mdnser.ipInfos.clear();
-            new getIpAsyncTask().execute();
-            view.closeRefresh(3100);
+            addSubscribe(Flowable.create((FlowableOnSubscribe<Mdnser>) e -> {
+                mdnser.initializeDiscoveryListener();
+                mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD,
+                        mdnser.mDiscoveryListener);
+                Thread.sleep(3 * 1000);
+                e.onNext(mdnser);
+            },BackpressureStrategy.BUFFER).compose(RxUtil.rxSchedulerHelper())
+                    .subscribeWith(new CommonSubscriber<Mdnser>(view){
+
+                @Override
+                public void onNext(Mdnser mdnser) {
+                    mdnser.mNsdManager.stopServiceDiscovery(mdnser.mDiscoveryListener);
+                    view.setAdapter(mdnser.ipInfos.size());
+                    view.closeRefresh();
+                }
+            }));
         }else {
             view.showNetWorkError(R.string.net_unavailable);
-            view.closeRefresh(0);
+            view.closeRefresh();
         }
 
     }
@@ -278,72 +288,6 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
     }
 
     private void readSocket() {
-        AsyncTask<Void, Void, DeviceProvisioningInfo> temp = new AsyncTask<Void, Void, DeviceProvisioningInfo>() {
-            private Exception errorInBackground;
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                Log.e("TAG", "connect is begin");
-            }
-
-            @Override
-            protected DeviceProvisioningInfo doInBackground(Void... voids) {
-                try {
-                    //long startTime = System.currentTimeMillis();
-                    int count = 0;
-                    DeviceProvisioningInfo response = mProvisioningClient.getDeviceProvisioningInfo();
-                    while (response.getCodeChallenge().length() < 43){
-                        response = mProvisioningClient.getDeviceProvisioningInfo();
-                        count += 1;
-                        if (count == 4){
-                            return null;
-                        }
-                    }
-                    return response;
-                } catch (Exception e) {
-                    errorInBackground = e;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(DeviceProvisioningInfo deviceProvisioningInfo) {
-                super.onPostExecute(deviceProvisioningInfo);
-                if (deviceProvisioningInfo != null) {
-                    mDeviceProvisioningInfo = deviceProvisioningInfo;
-//                            SharedPreferences.Editor editor = getActivity().getPreferences(Context.MODE_PRIVATE).edit();
-//                            editor.putString(getString(R.string.saved_device_address), address);
-//                            editor.commit();
-                    Log.e("TAG", "CONNECT IS SUCCESS");
-
-                    Log.e("TAG", "Startlogin");
-
-                    final JSONObject scopeData = new JSONObject();
-                    final JSONObject productInstanceAttributes = new JSONObject();
-                    final String codeChallenge = mDeviceProvisioningInfo.getCodeChallenge();
-                    final String codeChallengeMethod = mDeviceProvisioningInfo.getCodeChallengeMethod();
-
-                    try {
-                        productInstanceAttributes.put(DEVICE_SERIAL_NUMBER, mDeviceProvisioningInfo.getDsn());
-                        scopeData.put(PRODUCT_INSTANCE_ATTRIBUTES, productInstanceAttributes);
-                        scopeData.put(PRODUCT_ID, "A113X_EVB_AVS");//mDeviceProvisioningInfo.getProductId()
-
-                        AuthorizationManager.authorize(new AuthorizeRequest.Builder(mRequestContext)
-                                .addScopes(ScopeFactory.scopeNamed("alexa:voice_service:pre_auth"),
-                                        ScopeFactory.scopeNamed(ALEXA_ALL_SCOPE, scopeData))
-                                .forGrantType(AuthorizeRequest.GrantType.AUTHORIZATION_CODE)
-                                .withProofKeyParameters(codeChallenge, codeChallengeMethod)
-                                .build());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                } else {
-                    view.showAlertDialog(errorInBackground);
-                }
-            }
-        };
         readDisposable = Observable.interval(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(time -> {
                     try {
@@ -353,12 +297,10 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                             readStr = new String(b).trim();
                             Utils.Logger(TAG, "Read:", readStr);
                             if (readStr.contains("reset")) {
-                                //readDisposable.dispose();
-                                //socket.connect(new InetSocketAddress(address,9000),3000);
-                                //readSocket();
                                 readDisposable.dispose();
                                 socket.close();
-                                temp.execute();
+                                //temp.execute();
+                                loginWithAmazon();
                             } else if (readStr.contains("code")) {
                                 String[] code = readStr.split("=");
                                 mCode = code[1];
@@ -380,6 +322,58 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
                         readSocket();
                     }
                 });
+    }
+
+    private void loginWithAmazon() {
+        addSubscribe(Flowable.create((FlowableOnSubscribe<DeviceProvisioningInfo>) e -> {
+            try {
+                //long startTime = System.currentTimeMillis();
+                int count = 0;
+                DeviceProvisioningInfo response = mProvisioningClient.getDeviceProvisioningInfo();
+                while (response.getCodeChallenge().length() < 43){
+                    response = mProvisioningClient.getDeviceProvisioningInfo();
+                    count += 1;
+                    if (count == 4){
+                        view.showSnack(R.string.not_responding);
+                        return;
+                    }
+                }
+                e.onNext(response);
+            } catch (Exception e1) {
+                view.showSnack(R.string.not_responding);
+            }
+        },BackpressureStrategy.BUFFER).observeOn(Schedulers.io()).subscribeOn(Schedulers.io())
+                .subscribeWith(new CommonSubscriber<DeviceProvisioningInfo>(view){
+
+            @Override
+            public void onNext(DeviceProvisioningInfo deviceProvisioningInfo) {
+                mDeviceProvisioningInfo = deviceProvisioningInfo;
+                Log.e("TAG", "CONNECT IS SUCCESS");
+
+                Log.e("TAG", "Startlogin");
+
+                final JSONObject scopeData = new JSONObject();
+                final JSONObject productInstanceAttributes = new JSONObject();
+                final String codeChallenge = mDeviceProvisioningInfo.getCodeChallenge();
+                final String codeChallengeMethod = mDeviceProvisioningInfo.getCodeChallengeMethod();
+
+                try {
+                    productInstanceAttributes.put(DEVICE_SERIAL_NUMBER, mDeviceProvisioningInfo.getDsn());
+                    scopeData.put(PRODUCT_INSTANCE_ATTRIBUTES, productInstanceAttributes);
+                    scopeData.put(PRODUCT_ID, "A113X_EVB_AVS");//mDeviceProvisioningInfo.getProductId()
+
+                    AuthorizationManager.authorize(new AuthorizeRequest.Builder(mRequestContext)
+                            .addScopes(ScopeFactory.scopeNamed("alexa:voice_service:pre_auth"),
+                                    ScopeFactory.scopeNamed(ALEXA_ALL_SCOPE, scopeData))
+                            .forGrantType(AuthorizeRequest.GrantType.AUTHORIZATION_CODE)
+                            .withProofKeyParameters(codeChallenge, codeChallengeMethod)
+                            .build());
+                } catch (JSONException e) {
+                    view.showSnack(R.string.fail_login);
+                }
+            }
+        }));
+
     }
 
     private void sendSocket(String code) {
@@ -440,35 +434,6 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
         onWifiChanged(wifiManager.getConnectionInfo());
     }
 
-    class getIpAsyncTask extends AsyncTask {
-        @Override
-        protected Object doInBackground(Object[] objects) {
-
-            mdnser.initializeDiscoveryListener();
-            try {
-                mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mdnser.mDiscoveryListener);
-                Thread.sleep(3 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                mdnser.mNsdManager.stopServiceDiscovery(mdnser.mDiscoveryListener);
-                getIpHandler.sendEmptyMessage(0);
-            }
-
-            return null;
-        }
-    }
-
-    Handler getIpHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-//            mAdapter.notifyDataSetChanged();
-            view.setAdapter(mdnser.ipInfos.size());
-
-        }
-    };
-
     private class AuthorizeListenerImpl extends AuthorizeListener {
         @Override
         public void onSuccess(final AuthorizeResult authorizeResult) {
@@ -518,53 +483,37 @@ public class AVSPresenter extends RxPresenter<AVSContract.View> implements AVSCo
 
             mDataManagerModel.setUserId("");
 
-            final CompanionProvisioningInfo companionProvisioningInfo = new CompanionProvisioningInfo(sessionId, clientId, redirectUri, authorizationCode);
+            final CompanionProvisioningInfo companionProvisioningInfo =
+                    new CompanionProvisioningInfo(sessionId, clientId, redirectUri, authorizationCode);
 
-            new AsyncTask<Void, Void, Void>() {
-                private Exception errorInBackground;
+            addSubscribe(Flowable.create((FlowableOnSubscribe<ProvisioningClient>) e -> {
+                try {
+                    mProvisioningClient.postCompanionProvisioningInfo(companionProvisioningInfo);
+                    e.onNext(mProvisioningClient);
+                } catch (Exception e1) {
+                    view.showSnack(R.string.not_responding);
+                }
+            },BackpressureStrategy.BUFFER).observeOn(Schedulers.io()).subscribeOn(Schedulers.io())
+                    .subscribeWith(new CommonSubscriber<ProvisioningClient>(view){
 
                 @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    Log.e("TAG", "Login...");
-                    //loginInProgressState();
+                public void onNext(ProvisioningClient provisioningClient) {
+                    socket = new Socket();
+                    connSocket(GET_CODE);
                 }
-
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    try {
-                        mProvisioningClient.postCompanionProvisioningInfo(companionProvisioningInfo);
-                    } catch (Exception e) {
-                        errorInBackground = e;
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Void result) {
-                    super.onPostExecute(result);
-                    if (errorInBackground != null) {
-                        //connectCleanState();
-                        view.showAlertDialog(errorInBackground);
-                    } else {
-                        //loginSuccessState();
-                        Log.e("TAG", "Login success");
-                        socket = new Socket();
-                        connSocket(GET_CODE);
-                    }
-                }
-            }.execute();
+            }));
         }
 
         @Override
         public void onError(final AuthError authError) {
-            Log.e(TAG, "AuthError during authorization", authError);
-            activity.runOnUiThread(() -> view.showAlertDialog(authError));
+            //Log.e(TAG, "AuthError during authorization", authError);
+            //activity.runOnUiThread(() -> view.showAlertDialog(authError));
+            view.showSnack(R.string.fail_login);
         }
 
         @Override
         public void onCancel(final AuthCancellation authCancellation) {
-            Log.e(TAG, "User cancelled authorization");
+            //Log.e(TAG, "User cancelled authorization");
             view.hidProgress();
         }
     }

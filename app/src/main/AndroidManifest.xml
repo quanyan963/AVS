@@ -73,6 +73,10 @@
             android:screenOrientation="portrait">
 
         </activity>
+
+        <activity android:name=".qr.QrActivity"
+            android:configChanges="layoutDirection|locale"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

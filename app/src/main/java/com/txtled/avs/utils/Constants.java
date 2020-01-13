@@ -13,6 +13,7 @@ public class Constants {
     public static int REQUEST_CODE_LOCATION_SETTINGS = 100;
     public static int REQUEST_CODE_WIFI_SETTINGS = 200;
     public static int REQUEST_CODE_INTERNET_SETTINGS = 300;
+    public static int REQUEST_CODE_QR = 400;
     public static String RB_ID = "rb_id";
     public static String AVS_WIFI_URL = "http://192.168.2.1/wifilist.html";
     public static final String BUNDLE_KEY_EXCEPTION = "exception";
