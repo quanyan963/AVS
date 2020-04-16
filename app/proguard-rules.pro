@@ -219,7 +219,7 @@
 -dontwarn com.amazonaws.**
 -keep class com.amazonaws.**{*;}
 
-#Butter Knife
+# Butter Knife
 -keep class butterknife.** { *; }
 -dontwarn butterknife.internal.**
 -keep class **$$ViewBinder { *; }
@@ -234,6 +234,10 @@
 -dontwarn dagger.**
 -dontwarn com.squareup.javapoet.**
 -dontwarn com.google.common.**
+
+# zxing
+-keep class com.google.zxing.** {*;}
+-dontwarn com.google.zxing.**
 
 #greendao
 #-keep class org.greenrobot.greendao.**{*;}

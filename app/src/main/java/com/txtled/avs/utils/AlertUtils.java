@@ -207,6 +207,13 @@ public class AlertUtils {
                             editText.setFocusableInTouchMode(true);
                             editText.requestFocus();
 
+                        }else if (str == R.string.create_thing_fail){
+                            editText.setFocusable(true);
+                            editText.setFocusableInTouchMode(true);
+                            editText.requestFocus();
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(true);
+                            dialog.setCancelable(true);
                         }
                         textView.setText(str);
                         setAlphaAnimation(textView);

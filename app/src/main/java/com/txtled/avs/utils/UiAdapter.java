@@ -110,6 +110,7 @@ public class UiAdapter {
         makeString(1080, 1920, 480);
         makeString(1440, 2560, 560);
         makeString(1080, 2160, 403);
+        makeString(2160, 3840, 640);
         // 这里可以输出你想要适配的机型
     }
 }

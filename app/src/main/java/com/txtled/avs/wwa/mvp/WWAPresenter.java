@@ -53,6 +53,7 @@ import com.txtled.avs.application.MyApplication;
 import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.bean.WWADeviceInfo;
+import com.txtled.avs.main.MainActivity;
 import com.txtled.avs.model.DataManagerModel;
 import com.txtled.avs.model.operate.OperateHelper;
 import com.txtled.avs.utils.Constants;
@@ -143,7 +144,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
             @Override
             public void onFailure() {
-
+                ((MainActivity)context).showPermissionHint();
             }
 
             @Override
@@ -220,7 +221,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
         broadCast = "";
         for (int i = 0; i < maskTemp.length; i++) {
             if (maskTemp[i].equals("255")) {
-                broadCast += ipTemp[i] + ".";
+                broadCast += (ipTemp[i] + ".");
             } else {
                 broadCast += (255 - Integer.parseInt(maskTemp[i])) + (i == maskTemp.length - 1 ? "" : ".");
 
@@ -293,7 +294,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     @Override
     public void hasData() {
-        Flowable.timer(5, TimeUnit.SECONDS).compose(RxUtil.rxSchedulerHelper())
+        addSubscribe(Flowable.timer(5, TimeUnit.SECONDS).compose(RxUtil.rxSchedulerHelper())
                 .subscribeWith(new CommonSubscriber<Long>(view) {
                     @Override
                     public void onNext(Long aLong) {
@@ -304,7 +305,7 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
                             }
                         }
                     }
-                });
+                }));
     }
 
     @Override
@@ -469,14 +470,13 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
                     String newNames = getNewName(friendlyNames,friendlyName);
 
-                    String finalNewNames = newNames;
                     udpSend(String.format(FRIENDLY_NAME, newNames), result -> {
                         if (result.contains("1")){
                             udpBuild.stopUDPSocket();
                             listener.onStatueChange(R.string.complete_change);
                             listener.dismiss();
                         }else {
-                            udpBuild.sendMessage(String.format(FRIENDLY_NAME, finalNewNames),
+                            udpBuild.sendMessage(String.format(FRIENDLY_NAME, newNames),
                                     refreshData.get(position).getIp());
                         }
                     });
@@ -517,14 +517,13 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
                     String newNames = getNewName(friendlyNames,friendlyName);
 
-                    String finalNewNames = newNames;
                     udpSend(String.format(FRIENDLY_NAME, newNames), result -> {
                         if (result.contains("1")){
                             udpBuild.stopUDPSocket();
                             listener.onStatueChange(R.string.complete_change);
                             listener.dismiss();
                         }else {
-                            udpBuild.sendMessage(String.format(FRIENDLY_NAME, finalNewNames),
+                            udpBuild.sendMessage(String.format(FRIENDLY_NAME, newNames),
                                     refreshData.get(position).getIp());
                         }
                     });
@@ -656,43 +655,48 @@ public class WWAPresenter extends RxPresenter<WWAContract.View> implements WWACo
 
     private void createIotThing(OnCreateThingListener listener){
         listener.onStatueChange(R.string.hint_create_thing);
-        //创建事物
-        iotThing = awsIot.createThing(new CreateThingRequest()
-                .withThingName(mDataManagerModel.getUid()+"_"+System.currentTimeMillis()));
+        try{
+            //创建事物
+            iotThing = awsIot.createThing(new CreateThingRequest()
+                    .withThingName(mDataManagerModel.getUid()+"_"+System.currentTimeMillis()));
 //        Utils.Logger(TAG, "CreateThingResult:", "\nthingArn:" + iotThing.getThingArn()
 //                + "\nname:" + iotThing.getThingName() + "\nid:" + iotThing.getThingId());
-        //创建证书
-        keysAndCertificate = awsIot
-                .createKeysAndCertificate(new CreateKeysAndCertificateRequest()
-                        .withSetAsActive(true));
+            //创建证书
+            keysAndCertificate = awsIot
+                    .createKeysAndCertificate(new CreateKeysAndCertificateRequest()
+                            .withSetAsActive(true));
 //        Utils.Logger(TAG, "KeysAndCertificateResult:",
 //                "\narn:" + keysAndCertificate.getCertificateArn()
 //                        + "\nCertificateId:" + keysAndCertificate.getCertificateId()
 //                        + "\nCertificatePem:" + keysAndCertificate.getCertificatePem()
 //                        + "\nPrivateKey:" + keysAndCertificate.getKeyPair().getPrivateKey()
 //                        + "\nPublicKey:" + keysAndCertificate.getKeyPair().getPublicKey());
-        //关联证书
-        awsIot.attachThingPrincipal(new AttachThingPrincipalRequest()
-                .withThingName(iotThing.getThingName())
-                .withPrincipal(keysAndCertificate.getCertificateArn()));
+            //关联证书
+            awsIot.attachThingPrincipal(new AttachThingPrincipalRequest()
+                    .withThingName(iotThing.getThingName())
+                    .withPrincipal(keysAndCertificate.getCertificateArn()));
 
 //                    awsIot.attachPrincipalPolicy(new AttachPrincipalPolicyRequest()
-//                            .withPolicyName(keysAndCertificate.getCertificateId())
 //                            .withPrincipal(keysAndCertificate.getCertificateArn()));
-        //创建策略，以下是默认策略文档
-        try {
-            CreatePolicyRequest policyRequest = new CreatePolicyRequest();
-            policyRequest.setPolicyName(Constants.MY_OIT_CE);
-            policyRequest.setPolicyDocument(Constants.POLICY_JSON);
-            awsIot.createPolicy(policyRequest);
-        } catch (Exception e1) {
+//                            .withPolicyName(keysAndCertificate.getCertificateId())
+            //创建策略，以下是默认策略文档
+            try {
+                CreatePolicyRequest policyRequest = new CreatePolicyRequest();
+                policyRequest.setPolicyName(Constants.MY_OIT_CE);
+                policyRequest.setPolicyDocument(Constants.POLICY_JSON);
+                awsIot.createPolicy(policyRequest);
+            } catch (Exception e1) {
 
+            }
+
+            //证书附加策略
+            awsIot.attachPolicy(new AttachPolicyRequest()
+                    .withPolicyName(Constants.MY_OIT_CE)
+                    .withTarget(keysAndCertificate.getCertificateArn()));
+        }catch (Exception e){
+            listener.onStatueChange(R.string.create_thing_fail);
         }
 
-        //证书附加策略
-        awsIot.attachPolicy(new AttachPolicyRequest()
-                .withPolicyName(Constants.MY_OIT_CE)
-                .withTarget(keysAndCertificate.getCertificateArn()));
     }
 
 //    private HashMap<String, AttributeValue> createData(CreateKeysAndCertificateResult keysAndCertificate

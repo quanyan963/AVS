@@ -3,14 +3,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark">
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/tv_company"
+        style="@style/main_tv"
+        android:layout_below="@+id/tv_avs_wifi"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/dp_32_x"
+        android:textColor="@color/colorPrimary"
+        android:gravity="center"
+        android:text="@string/designed_by" />
+    <ProgressBar
+        android:visibility="gone"
+        android:id="@+id/pb_web"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dp_3_x"
+        android:max="100"
+        style="?android:attr/progressBarStyleHorizontal"/>
     <WebView
         android:id="@+id/web_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
     </WebView>
+
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/tv_wifi_hint"
+        style="@style/main_tv"
+        android:layout_below="@+id/tv_avs_wifi"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="@dimen/dp_12_x"
+        android:gravity="center"
+        android:text="@string/avs_wifi_hint" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_web_config"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/setting_avs_wifi_connection"
+        android:padding="@dimen/dp_8_x"
+        android:paddingLeft="@dimen/dp_16_x"
+        android:paddingRight="@dimen/dp_16_x"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="@dimen/dp_32_x"/>
 
 
 </RelativeLayout>

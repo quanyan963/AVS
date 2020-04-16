@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 //apply plugin: 'org.greenrobot.greendao'
 
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
 android {
     signingConfigs {
         release {
@@ -17,8 +23,12 @@ android {
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
-        versionName "1.0.4"
+        versionName "1.0.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'armeabi-v7a'
+        }
     }
 
     // Sign both debug and release with a single key so that LWA always works
@@ -33,6 +43,12 @@ android {
         release {
             buildConfigField "boolean", "LOG_DEBUG", "false" //不显示log
             minifyEnabled true
+            //shrinkResources true
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
             //shrinkResources true
             zipAlignEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -111,9 +127,11 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-cognito:2.16.6'
     implementation 'com.amazonaws:aws-android-sdk-cognitoidentityprovider:2.16.6'
 
-    //添加Zxing依赖
+    //Zxing
     implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
 
+    //guide
+    implementation 'com.github.huburt-Hu:NewbieGuide:v2.4.0'
 //    // Mobile Client for initializing the SDK
 //    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.7.+@aar') { transitive = true }
 //

@@ -79,7 +79,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (isBack) {
             toolbar.setNavigationIcon(R.drawable.black_back);
         } else {
-            toolbar.setNavigationIcon(R.drawable.reset);
+            toolbar.setNavigationIcon(null);
         }
 
     }
@@ -89,7 +89,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     public void setRightImg(Drawable drawable, View.OnClickListener listener) {
-        ivRight.setImageDrawable(drawable);
+        if (drawable == null){
+            ivRight.setImageResource(R.mipmap.home_infoxhdpi);
+        }else {
+            ivRight.setImageDrawable(drawable);
+        }
         ivRight.setOnClickListener(listener);
     }
 

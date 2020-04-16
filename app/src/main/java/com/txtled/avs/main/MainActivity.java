@@ -3,8 +3,14 @@ package com.txtled.avs.main;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.RadioButton;
@@ -23,6 +29,12 @@ import com.txtled.avs.avs.AVSFragment;
 import com.txtled.avs.base.MvpBaseActivity;
 import com.txtled.avs.main.mvp.MainContract;
 import com.txtled.avs.main.mvp.MainPresenter;
+import com.txtled.avs.utils.HuaweiUtils;
+import com.txtled.avs.utils.MeizuUtils;
+import com.txtled.avs.utils.MiuiUtils;
+import com.txtled.avs.utils.OppoUtils;
+import com.txtled.avs.utils.QikuUtils;
+import com.txtled.avs.utils.RomUtils;
 import com.txtled.avs.utils.Utils;
 import com.txtled.avs.web.WebViewActivity;
 import com.txtled.avs.wwa.WWAFragment;
@@ -42,12 +54,12 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
 
     @BindView(R.id.fl_main_fragment)
     FrameLayout flMainFragment;
-    @BindView(R.id.rb_main_avs)
-    RadioButton rbMainAvs;
-    @BindView(R.id.rb_main_wwa)
-    RadioButton rbMainWwa;
-    @BindView(R.id.rg_main_bottom)
-    RadioGroup rgMainBottom;
+//    @BindView(R.id.rb_main_avs)
+//    RadioButton rbMainAvs;
+//    @BindView(R.id.rb_main_wwa)
+//    RadioButton rbMainWwa;
+//    @BindView(R.id.rg_main_bottom)
+//    RadioGroup rgMainBottom;
     @BindView(R.id.nav_view)
     NavigationView navView;
     @BindView(R.id.dl_main_right)
@@ -60,24 +72,53 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
 
     @Override
     public void init() {
-        Intent intent = getIntent();
-        int checkId = intent.getIntExtra(RB_ID, R.id.rb_main_avs);
-
-        try{
-            String data = intent.getDataString(); // 接收到网页传过来的数据：scheme://data/xxx
-            String[] split = data.split("data/");
-            String param = split[1]; // 获取到网页传过来的参数
-        }catch (Exception e){
-
-        }
+//        Intent intent = getIntent();
+//        int checkId = intent.getIntExtra(RB_ID, R.id.rb_main_avs);
+//
+//        try{
+//            String data = intent.getDataString(); // 接收到网页传过来的数据：scheme://data/xxx
+//            String[] split = data.split("data/");
+//            String param = split[1]; // 获取到网页传过来的参数
+//        }catch (Exception e){
+//
+//        }
 
         initToolbar();
-        mCurrentFragment = new AVSFragment();
-        rgMainBottom.setOnCheckedChangeListener(this);
-        rgMainBottom.check(checkId);
-        setNavigationIcon(true);
         isShowRightImg(true);
+        setRightImg(null,new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dlMainRight.openDrawer(navView);
+            }
+        });
+
+        try {
+            View view = navView.getHeaderView(0);
+            Menu menu = navView.getMenu();
+            MenuItem item = menu.getItem(0);
+            item.setTitle(String.format(getString(R.string.version_s),getPackageManager()
+                    .getPackageInfo(getPackageName(),0).versionName));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        mCurrentFragment = new AVSFragment();
+//        rgMainBottom.setOnCheckedChangeListener(this);
+//        rgMainBottom.check(checkId);
+//        setNavigationIcon(true);
+//        isShowRightImg(true);
+
         //setRightImg(getDrawable(R.drawable.reset),this);
+        toAVS();
+    }
+
+    public void setAvsSwitch(boolean b){
+        avsSwitch = b;
+        if (avsSwitch){
+            setNavigationIcon(true);
+        }else {
+            setNavigationIcon(false);
+        }
     }
 
     @Override
@@ -93,7 +134,8 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     //打开wifi设置界面
     @Override
     public void openWifi() {
-        showSnackBar(rgMainBottom, R.string.no_conn_wifi, R.string.go, new View.OnClickListener() {
+        hideSnackBar();
+        showSnackBar(flMainFragment, R.string.no_conn_wifi, R.string.go, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
@@ -106,7 +148,8 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     //跳转地理位置
     @Override
     public void openLocation() {
-        showSnackBar(rgMainBottom, R.string.no_open_location, R.string.go, new View.OnClickListener() {
+        hideSnackBar();
+        showSnackBar(flMainFragment, R.string.no_open_location, R.string.go, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent locationIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -126,7 +169,8 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     //跳转wifi设置
     @Override
     public void networkNoteMatch() {
-        showSnackBar(rgMainBottom, R.string.wifi_no_match, R.string.go, view -> {
+        hideSnackBar();
+        showSnackBar(flMainFragment, R.string.wifi_no_match, R.string.go, view -> {
             Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
             startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
             hideSnackBar();
@@ -139,12 +183,13 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
             mAVSFragment = new AVSFragment();
         }
         switchContent(mCurrentFragment, mAVSFragment);
-        setTitle(R.string.avs);
-        setRightImg(getDrawable(R.drawable.avs_change), this);
-        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                R.drawable.avs, R.color.colorPrimaryDark, this), null, null);
-        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                R.drawable.wwa, R.color.black, this), null, null);
+        tvTitle.setText(R.string.avs);
+        //setTitle(R.string.avs);
+        //setRightImg(getDrawable(R.drawable.avs_change), this);
+//        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
+//                R.drawable.avs, R.color.colorPrimaryDark, this), null, null);
+//        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
+//                R.drawable.wwa, R.color.black, this), null, null);
     }
 
     @Override
@@ -155,10 +200,56 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
         switchContent(mCurrentFragment, mWWAFragment);
         setTitle(R.string.wwa);
         setRightImg(getDrawable(R.drawable.reset), this);
-        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
-        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
-                R.drawable.avs, R.color.black, this), null, null);
+//        rbMainWwa.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
+//                R.drawable.wwa, R.color.colorPrimaryDark, this), null, null);
+//        rbMainAvs.setCompoundDrawablesWithIntrinsicBounds(null, Utils.changeSVGColor(
+//                R.drawable.avs, R.color.black, this), null, null);
+    }
+
+    @Override
+    public void showPermissionHint() {
+        hideSnackBar();
+        showSnackBar(flMainFragment, R.string.permission_hint, R.string.go, v -> {
+            try {
+                toPermissionSetting();
+                hideSnackBar();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void toPermissionSetting() throws NoSuchFieldException, IllegalAccessException{
+        if (Build.VERSION.SDK_INT < 23) {
+            if (RomUtils.checkIsMiuiRom()) {
+                MiuiUtils.applyMiuiPermission(this);
+            } else if (RomUtils.checkIsMeizuRom()) {
+                MeizuUtils.applyPermission(this);
+            } else if (RomUtils.checkIsHuaweiRom()) {
+                HuaweiUtils.applyPermission(this);
+            } else if (RomUtils.checkIs360Rom()) {
+                QikuUtils.applyPermission(this);
+            } else if (RomUtils.checkIsOppoRom()) {
+                OppoUtils.applyOppoPermission(this);
+            } else {
+                RomUtils.getAppDetailSettingIntent(this);
+            }
+        } else {
+            if (RomUtils.checkIsMeizuRom()) {
+                MeizuUtils.applyPermission(this);
+            } else {
+                if (RomUtils.checkIsOppoRom() || RomUtils.checkIsVivoRom()
+                        || RomUtils.checkIsHuaweiRom() || RomUtils.checkIsSamsunRom()) {
+                    RomUtils.getAppDetailSettingIntent(this);
+                } else if (RomUtils.checkIsMiuiRom()) {
+                    MiuiUtils.toPermisstionSetting(this);
+                } else {
+                    RomUtils.commonROMPermissionApplyInternal(this);
+                }
+            }
+        }
     }
 
     private void switchContent(Fragment from, Fragment to) {
@@ -237,8 +328,23 @@ public class MainActivity extends MvpBaseActivity<MainPresenter> implements Main
     public void onBackPressed() {
         if (snackbar != null && snackbar.isShown()){
             hideSnackBar();
+        }else if (avsSwitch == true){
+            ((AVSFragment)mCurrentFragment).changeResetView(false);
         }else {
             super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (snackbar != null && snackbar.isShown()){
+            hideSnackBar();
+            return false;
+        }else if (avsSwitch == true){
+            ((AVSFragment)mCurrentFragment).changeResetView(false);
+            return false;
+        }else {
+            return onExitActivity(keyCode, event);
         }
     }
 }

@@ -15,7 +15,6 @@ import java.util.ArrayList;
  */
 public interface AVSContract {
     interface View extends BaseView {
-        void showAlertDialog(Exception exception);
 
         void setAdapter(int count);
 
@@ -51,5 +50,7 @@ public interface AVSContract {
         void destroy();
 
         void setSwitch(boolean avsSwitch);
+
+        boolean isAvsWifi(Context context);
     }
 }

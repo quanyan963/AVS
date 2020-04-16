@@ -18,30 +18,29 @@
             android:id="@+id/fl_main_fragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@+id/rg_main_bottom"
             android:layout_below="@+id/i_main_toolbar">
         </FrameLayout>
-        <RadioGroup
-            android:id="@+id/rg_main_bottom"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_alignParentBottom="true"
-            android:background="@color/gray"
-            app:layout_constraintBottom_toBottomOf="parent">
-            <RadioButton
-                android:id="@+id/rb_main_avs"
-                style="@style/nav_rb"
-                android:transitionName="@string/share_avs"
-                android:paddingTop="@dimen/dp_6_y"
-                android:drawableTop="@drawable/avs"/>
-            <RadioButton
-                android:id="@+id/rb_main_wwa"
-                style="@style/nav_rb"
-                android:transitionName="@string/share_wwa"
-                android:paddingTop="@dimen/dp_6_y"
-                android:drawableTop="@drawable/wwa"/>
-        </RadioGroup>
+<!--        <RadioGroup-->
+<!--            android:id="@+id/rg_main_bottom"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:background="@color/gray"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent">-->
+<!--            <RadioButton-->
+<!--                android:id="@+id/rb_main_avs"-->
+<!--                style="@style/nav_rb"-->
+<!--                android:transitionName="@string/share_avs"-->
+<!--                android:paddingTop="@dimen/dp_6_y"-->
+<!--                android:drawableTop="@drawable/avs"/>-->
+<!--            <RadioButton-->
+<!--                android:id="@+id/rb_main_wwa"-->
+<!--                style="@style/nav_rb"-->
+<!--                android:transitionName="@string/share_wwa"-->
+<!--                android:paddingTop="@dimen/dp_6_y"-->
+<!--                android:drawableTop="@drawable/wwa"/>-->
+<!--        </RadioGroup>-->
     </RelativeLayout>
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"

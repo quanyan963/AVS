@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AVS &amp; WWA</string>
+    <string name="app_name">GP-A211</string>
 
     //main
     <string name="exit_program_hint">再按一次退出程序</string>
@@ -10,6 +10,7 @@
     <string name="setting_wifi_to_avs">为AVS配置网络</string>
     <string name="avs">AVS</string>
     <string name="wwa">WWA</string>
+    <string name="about_us">关于我们</string>
 
     //menu
     <string name="avs_setting">AVS 设置</string>
@@ -25,7 +26,7 @@
     <string name="error">错误</string>
     <string name="author_success">认证成功</string>
     <string name="close">关闭</string>
-    <string name="remember_and_copy">请记住并复制验证码</string>
+    <string name="remember_and_copy">请长按复制验证码</string>
     <string name="bind_device">绑定设备</string>
     <string name="net_unavailable">网络不可用，请连接至已配置的网络。</string>
     <string name="avs_success">AVS配置完成</string>
@@ -33,6 +34,8 @@
     <string name="avs_wifi_available">请连接至属于AVS的网络。</string>
     <string name="scan_qr_code">扫描二维码</string>
     <string name="fail_login">登录失败，请重试。</string>
+    <string name="refresh_hint">点击这里，或者下拉\n列表进行列表刷新。</string>
+    <string name="got_it">我知道了</string>
 
     //wwa
     <string name="menu_item_about">关于App</string>
@@ -74,7 +77,13 @@
     <string name="changing">更改中…</string>
     <string name="complete_change">更改成功</string>
     <string name="not_responding">AVS设备无响应。</string>
-
+    <string name="location_unavailable">地理位置不可用，请打开位置信息。</string>
+    <string name="permission_hint">App想要检查wifi的名称，请允许地理位置权限。</string>
+    <string name="create_thing_fail">事物创建失败。</string>
+    <string name="version_s">App 版本号: %s</string>
+    <string name="bind">绑定设备</string>
+    <string name="designed_by">Designed by GREAT POWER</string>
+    <string name="unbind_device">设备换绑</string>
 
 
 </resources>

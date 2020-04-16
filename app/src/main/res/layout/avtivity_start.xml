@@ -5,11 +5,17 @@
     android:layout_height="match_parent"
     android:background="@mipmap/inner_background">
 
+    <TextView
+        android:id="@+id/tv_version"
+        style="@style/main_tv"
+        android:layout_width="match_parent"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="@dimen/dp_8_x" />
     <RadioGroup
         android:id="@+id/rg_start_check"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/dp_32_y"
         android:gravity="center">
         <RadioButton
             style="@style/nav_rb"

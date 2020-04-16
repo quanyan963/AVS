@@ -27,13 +27,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".start.StartActivity"
             android:configChanges="layoutDirection|locale"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:screenOrientation="portrait"/>
         <activity android:name="com.amazon.identity.auth.device.authorization.AuthorizationActivity"
             android:theme="@android:style/Theme.NoDisplay"
             android:allowTaskReparenting="true"
@@ -75,6 +69,18 @@
         </activity>
 
         <activity android:name=".qr.QrActivity"
+            android:configChanges="layoutDirection|locale"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".config.WifiConfigActivity"
+            android:configChanges="layoutDirection|locale"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".bind.BindActivity"
             android:configChanges="layoutDirection|locale"
             android:screenOrientation="portrait"/>
     </application>

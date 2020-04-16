@@ -29,7 +29,7 @@ public class MainPresenter extends RxPresenter<MainContract.View> implements Mai
 
     @Override
     public void getWifiSSid(final Activity activity) {
-        final String[] str = {Constants.permissions[0]};
+        final String[] str = {Constants.permissions[0],Constants.permissions[1]};
         mDataManagerModel.requestPermissions(activity, str, new OperateHelper.OnPermissionsListener() {
             @Override
             public void onSuccess(String name) {
@@ -46,12 +46,12 @@ public class MainPresenter extends RxPresenter<MainContract.View> implements Mai
                     } else if (!network) {
                         view.openWifi();
                     } else {
-                        if (Utils.getWifiSSID(activity).contains(Constants.WIFI_NAME)) {
+                        if (Utils.getWifiSSID(activity).contains(Constants.WIFI_NAME) ||
+                                Utils.getWifiSSID(activity).contains(Constants.WIFI_NAME_OLD)) {
                             view.toWebView();
                         } else {
                             view.networkNoteMatch();
                         }
-
                     }
 
                 }
@@ -59,7 +59,7 @@ public class MainPresenter extends RxPresenter<MainContract.View> implements Mai
 
             @Override
             public void onFailure() {
-
+                view.showPermissionHint();
             }
 
             @Override

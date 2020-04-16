@@ -23,6 +23,8 @@ public interface MainContract {
         void toAVS();
 
         void toWWA();
+
+        void showPermissionHint();
     }
 
     interface Presenter extends BasePresenter<View> {

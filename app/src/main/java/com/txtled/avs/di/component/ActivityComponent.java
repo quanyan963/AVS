@@ -2,7 +2,9 @@ package com.txtled.avs.di.component;
 
 import android.app.Activity;
 
+import com.txtled.avs.bind.BindActivity;
 import com.txtled.avs.cognito.AuthenticatorActivity;
+import com.txtled.avs.config.WifiConfigActivity;
 import com.txtled.avs.di.module.ActivityModule;
 import com.txtled.avs.di.scope.ActivityScope;
 import com.txtled.avs.main.MainActivity;
@@ -31,4 +33,8 @@ public interface ActivityComponent {
     void inject(AuthenticatorActivity authenticatorActivity);
 
     void inject(QrActivity qrActivity);
+
+    void inject(WifiConfigActivity wifiConfigActivity);
+
+    void inject(BindActivity bindActivity);
 }

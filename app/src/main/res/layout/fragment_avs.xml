@@ -10,13 +10,28 @@
         android:layout_height="match_parent"
         android:background="@drawable/background_white"
         android:layout_margin="@dimen/dp_12_x">
+        <TextView
+            style="@style/main_tv"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/dp_8_x"
+            android:textSize="@dimen/dp_20_x"
+            android:textStyle="bold"
+            android:text="GREAT POWER"/>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tv_zxing"
             style="@style/main_tv"
             android:layout_centerInParent="true"
             android:layout_above="@+id/tv_avs_wifi"
             android:textColor="@color/colorPrimary"
-            android:text="@string/scan_qr_code"/>
+            android:text="@string/scan_qr_code"
+            android:visibility="gone"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/tv_avs_list"
+            style="@style/main_tv"
+            android:layout_centerInParent="true"
+            android:layout_above="@+id/tv_avs_wifi"
+            android:textColor="@color/colorPrimary"
+            android:text="@string/avs_device_lists" />
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tv_avs_wifi"
             android:layout_centerInParent="true"
@@ -25,7 +40,6 @@
             android:layout_marginTop="@dimen/dp_16_y"
             android:layout_marginBottom="@dimen/dp_16_y"
             android:text="@string/setting_avs_wifi_connection"
-
             android:background="@drawable/ripple_item_layout_effect"/>
 
         <TextView
@@ -34,6 +48,7 @@
             android:layout_below="@+id/tv_avs_wifi"
             android:layout_centerInParent="true"
             android:layout_marginBottom="@dimen/dp_12_x"
+            android:gravity="center"
             android:hint="@string/avs_wifi_hint" />
     </RelativeLayout>
     <RelativeLayout
@@ -77,33 +92,36 @@
             android:gravity="center"
             android:layout_margin="@dimen/dp_16_x"
             android:hint="@string/avs_config_hint"/>
-        <RelativeLayout
-            android:id="@+id/rl_avs_bind"
-            android:layout_width="match_parent"
+    </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/rl_avs_bind"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:layout_margin="@dimen/dp_12_x"
+        android:background="@drawable/background_white"
+        android:visibility="gone"
+        android:gravity="center">
+        <TextView
+            android:id="@+id/tv_avs_code"
+            style="@style/main_tv"
+            android:textIsSelectable="true"
+            android:layout_centerHorizontal="true"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/dp_8_x" />
+        <TextView
+            android:id="@+id/tv_avs_code_hint"
+            style="@style/main_tv"
+            android:text="@string/remember_and_copy"
+            android:layout_marginBottom="@dimen/dp_8_x"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/tv_avs_code"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/tv_avs_bind"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:visibility="gone">
-            <TextView
-                android:id="@+id/tv_avs_code"
-                style="@style/main_tv"
-                android:textIsSelectable="true"
-                android:layout_centerHorizontal="true"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/dp_8_x" />
-            <TextView
-                android:id="@+id/tv_avs_code_hint"
-                style="@style/main_tv"
-                android:text="@string/remember_and_copy"
-                android:layout_marginBottom="@dimen/dp_8_x"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@+id/tv_avs_code"/>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/tv_avs_bind"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:text="@string/bind_device"
-                android:layout_below="@+id/tv_avs_code_hint" />
-        </RelativeLayout>
+            android:layout_centerHorizontal="true"
+            android:text="@string/bind_device"
+            android:layout_below="@+id/tv_avs_code_hint" />
     </RelativeLayout>
 </RelativeLayout>

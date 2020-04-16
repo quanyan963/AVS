@@ -1,11 +1,13 @@
 package com.txtled.avs.start;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.txtled.avs.R;
 import com.txtled.avs.base.MvpBaseActivity;
@@ -33,6 +35,8 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
     RadioButton rbMainAvsImg;
     @BindView(R.id.rb_main_wwa_img)
     RadioButton rbMainWwaImg;
+    @BindView(R.id.tv_version)
+    TextView tvVersion;
 
     @Override
     public void setInject() {
@@ -47,6 +51,13 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
         rbMainAvsImg.setOnClickListener(this);
         rbMainWwaImg.setOnClickListener(this);
         presenter.initUid();
+
+        try {
+            tvVersion.setText(String.format(getResources().getString(R.string.version_s),
+                    getPackageManager().getPackageInfo(getPackageName(),0).versionName));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -100,5 +111,12 @@ public class StartActivity extends MvpBaseActivity<StartPresenter> implements St
                 startActivity(intent);
                 break;
         }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // TODO: add setContentView(...) invocation
+        ButterKnife.bind(this);
     }
 }

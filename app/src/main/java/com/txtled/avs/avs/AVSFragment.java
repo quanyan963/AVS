@@ -13,11 +13,14 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.app.hubert.guide.NewbieGuide;
+import com.app.hubert.guide.core.Controller;
+import com.app.hubert.guide.listener.OnLayoutInflatedListener;
+import com.app.hubert.guide.model.GuidePage;
 import com.google.android.material.button.MaterialButton;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
@@ -36,7 +39,6 @@ import java.util.ArrayList;
 import butterknife.BindView;
 
 import static com.txtled.avs.utils.Constants.BIND_URL;
-import static com.txtled.avs.utils.Constants.BUNDLE_KEY_EXCEPTION;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_INTERNET_SETTINGS;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_QR;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
@@ -73,8 +75,11 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     ImageView ivAvsRefresh;
     @BindView(R.id.tv_zxing)
     MaterialButton tvZxing;
+    @BindView(R.id.tv_avs_list)
+    MaterialButton tvAvsList;
     private AVSAdapter adapter;
     private AlertDialog dialog;
+    private Controller controller;
 
     @Override
     protected void initInject() {
@@ -94,6 +99,7 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         //pbAvsLoading.setVisibility(View.GONE);
         tvAvsWifi.setOnClickListener(this);
         tvAvsBind.setOnClickListener(this);
+        tvAvsList.setOnClickListener(this);
         ivAvsRefresh.setOnClickListener(this);
         rlvAvsList.setHasFixedSize(true);
         tvZxing.setOnClickListener(this);
@@ -103,6 +109,25 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
         sflAcsRefresh.setOnRefreshListener(this);
         dialog = AlertUtils.showLoadingDialog(getContext(), R.layout.alert_progress);
+
+        GuidePage page = GuidePage.newInstance()
+                .addHighLight(ivAvsRefresh)
+                .setLayoutRes(R.layout.view_guide);
+        controller = NewbieGuide.with(this)
+                .setLabel("1")
+                .addGuidePage(page).build();
+        page.setOnLayoutInflatedListener(new OnLayoutInflatedListener() {
+            @Override
+            public void onLayoutInflated(View view, Controller controller) {
+                MaterialButton ok = view.findViewById(R.id.btn_guide_ok);
+                ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        controller.remove();
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -118,8 +143,10 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
                 startActivityForResult(intent, REQUEST_CODE_INTERNET_SETTINGS);
                 break;
             case R.id.iv_avs_refresh:
-                sflAcsRefresh.setRefreshing(true);
-                presenter.refresh();
+                if (!sflAcsRefresh.isRefreshing()){
+                    sflAcsRefresh.setRefreshing(true);
+                    presenter.refresh();
+                }
                 break;
             case R.id.tv_zxing:
                 IntentIntegrator intentIntegrator = IntentIntegrator.forSupportFragment(this);
@@ -127,6 +154,9 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
                 intentIntegrator.setCaptureActivity(QrActivity.class); // 设置自定义的activity是QRActivity
                 intentIntegrator.setRequestCode(REQUEST_CODE_QR);
                 intentIntegrator.initiateScan();
+                break;
+            case R.id.tv_avs_list:
+                changeResetView(true);
                 break;
         }
     }
@@ -144,19 +174,18 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
         }
     }
 
-    /****************AMZ LOGIN FUNCTION************/
-    @Override
-    public void showAlertDialog(Exception exception) {
-        hidProgress();
-        //pbAvsLoading.setVisibility(View.GONE);
-        exception.printStackTrace();
-        MainActivity.ErrorDialogFragment dialogFragment = new MainActivity.ErrorDialogFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(BUNDLE_KEY_EXCEPTION, exception);
-        dialogFragment.setArguments(args);
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        dialogFragment.show(fm, "error_dialog");
-    }
+//    @Override
+//    public void showAlertDialog(Exception exception) {
+//        hidProgress();
+//        //pbAvsLoading.setVisibility(View.GONE);
+//        exception.printStackTrace();
+//        MainActivity.ErrorDialogFragment dialogFragment = new MainActivity.ErrorDialogFragment();
+//        Bundle args = new Bundle();
+//        args.putSerializable(BUNDLE_KEY_EXCEPTION, exception);
+//        dialogFragment.setArguments(args);
+//        FragmentManager fm = getActivity().getSupportFragmentManager();
+//        dialogFragment.show(fm, "error_dialog");
+//    }
 
     @Override
     public void setAdapter(int count) {
@@ -185,10 +214,12 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
     public void bindDevice(String mCode) {
         getActivity().runOnUiThread(() -> {
             rlAvsBind.setVisibility(View.VISIBLE);
+            rlAvsBind.bringToFront();
             tvAvsCode.setText(mCode);
             hidProgress();
             //pbAvsLoading.setVisibility(View.GONE);
-            sflAcsRefresh.setVisibility(View.GONE);
+            //sflAcsRefresh.setVisibility(View.GONE);
+            rlAvsSearch.setVisibility(View.GONE);
         });
     }
 
@@ -281,12 +312,24 @@ public class AVSFragment extends MvpBaseFragment<AVSPresenter> implements AVSCon
 
     public void changeResetView(boolean avsSwitch) {
         presenter.setSwitch(avsSwitch);
+        ((MainActivity)getActivity()).setAvsSwitch(avsSwitch);
         if (avsSwitch) {
+            tvAvsCode.setVisibility(View.VISIBLE);
+            tvAvsBind.setVisibility(View.VISIBLE);
             rlAvsWifi.setVisibility(View.GONE);
+            rlAvsBind.setVisibility(View.GONE);
             rlAvsSearch.setVisibility(View.VISIBLE);
+            tvAvsCodeHint.setText(R.string.remember_and_copy);
+            rlAvsSearch.bringToFront();
+            sflAcsRefresh.setRefreshing(true);
+            presenter.refresh();
+            controller.show();
         } else {
             rlAvsSearch.setVisibility(View.GONE);
+            rlAvsBind.setVisibility(View.GONE);
             rlAvsWifi.setVisibility(View.VISIBLE);
+            rlAvsWifi.bringToFront();
+
         }
     }
 }
