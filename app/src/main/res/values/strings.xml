@@ -84,6 +84,10 @@
     <string name="bind">BIND DEVICE</string>
     <string name="designed_by">Designed by GREAT POWER</string>
     <string name="unbind_device">Change Binding</string>
+    <string name="change_wifi">Change WiFi</string>
+    <string name="bound">This device is bound.</string>
+    <string name="not_found_try_again">Device not found,please try again or change to right WiFi.</string>
+    <string name="retry">Retry</string>
 
 
 </resources>

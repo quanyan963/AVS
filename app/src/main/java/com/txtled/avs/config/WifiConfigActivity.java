@@ -247,7 +247,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void showToast(int str) {
-        runOnUiThread(() -> Toast.makeText(this, str, Toast.LENGTH_LONG).show());
+        runOnUiThread(() -> Toast.makeText(this, str, Toast.LENGTH_SHORT).show());
     }
 
     @Override
