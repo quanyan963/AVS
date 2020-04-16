@@ -71,7 +71,6 @@
         android:textColor="@color/colorPrimary"
         android:textSize="18sp"
         android:text="@string/unbind_device"
-
         android:paddingLeft="@dimen/dp_16_x"
         android:paddingRight="@dimen/dp_16_x"
         android:paddingTop="@dimen/dp_8_x"
