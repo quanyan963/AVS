@@ -84,6 +84,10 @@
     <string name="bind">绑定设备</string>
     <string name="designed_by">Designed by GREAT POWER</string>
     <string name="unbind_device">设备换绑</string>
+    <string name="change_wifi">变更 WiFi</string>
+    <string name="bound">设备已绑定。</string>
+    <string name="not_found_try_again">没有发现设备，请重试或切换至正确的WiFi.</string>
+    <string name="retry">重试</string>
 
 
 </resources>

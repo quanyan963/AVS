@@ -106,7 +106,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                 mdnser.initializeDiscoveryListener();
                 mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD,
                         mdnser.mDiscoveryListener);
-                Thread.sleep(2000);
+                Thread.sleep(1500);
                 e.onNext(mdnser);
             }catch (Exception e1){
                 findDevice();
