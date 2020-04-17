@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/colorAccent">
+    android:background="@color/colorPrimaryDark">
 
     <include android:id="@+id/i_bind_tool"
         layout="@layout/toolbar"
@@ -33,7 +33,7 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginBottom="@dimen/dp_32_x"
         android:textAppearance="?android:attr/textAppearance"
-        app:backgroundTint="@color/colorPrimaryDark"
+        app:backgroundTint="@color/colorAccent"
         android:textColor="@color/colorPrimary"
         android:textSize="18sp"
         android:text="@string/bind_device"

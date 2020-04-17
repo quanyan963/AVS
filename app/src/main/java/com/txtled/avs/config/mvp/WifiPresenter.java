@@ -266,8 +266,9 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                         readDisposable.dispose();
                         writeDisposable.dispose();
                     }else {
+                        if (!readStr.contains(RESET_IP))
+                            view.showWeb();
                         readStr = null;
-                        view.showWeb();
                     }
                 });
     }
@@ -305,8 +306,8 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                                 //temp.execute();
                             } else if (readStr.contains("ip")) {
                                 String ip = readStr.split("=")[1];
-                                //readDisposable.dispose();
-                                //socket.close();
+                                readDisposable.dispose();
+                                socket.close();
                                 view.getIp(ip);
                                 view.toBindView();
                                 //temp.execute();
@@ -320,12 +321,14 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                             }
                         }
                     } catch (Exception e) {
-                        if (!readDisposable.isDisposed()) {
-                            readDisposable.dispose();
-                            socket = null;
-                            socket = new Socket();
-                            socket.connect(new InetSocketAddress(address, 9000), 3000);
-                            readSocket();
+                        if (readDisposable != null){
+                            if (!readDisposable.isDisposed()) {
+                                readDisposable.dispose();
+                                socket = null;
+                                socket = new Socket();
+                                socket.connect(new InetSocketAddress(address, 9000), 3000);
+                                readSocket();
+                            }
                         }
                     }
                 });
