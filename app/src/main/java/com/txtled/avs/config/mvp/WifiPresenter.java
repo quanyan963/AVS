@@ -68,6 +68,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
     private Disposable timerDisposable;
     private Disposable loginDisposable;
     private int count;
+    private boolean isReset;
 
     @Inject
     public WifiPresenter(DataManagerModel dataManagerModel) {
@@ -263,8 +264,8 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(time -> {
                     if (readStr == null || readStr.isEmpty()) {
                         view.showToast(R.string.not_responding);
-                        readDisposable.dispose();
-                        writeDisposable.dispose();
+                        //readDisposable.dispose();
+                        //writeDisposable.dispose();
                     }else {
                         if (!readStr.contains(RESET_IP))
                             view.showWeb();
@@ -309,9 +310,12 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                                 readDisposable.dispose();
                                 socket.close();
                                 view.getIp(ip);
-                                view.toBindView();
+                                if (isReset) {
+                                    view.toBindView();
+                                }
                                 //temp.execute();
                             } else if (readStr.contains(RESET_IP)){
+                                isReset = true;
                                 view.webVisible();
                                 //readDisposable.dispose();
 //                                view.showToast(R.string.not_responding);
