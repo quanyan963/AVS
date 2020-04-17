@@ -67,8 +67,10 @@ import static com.txtled.avs.utils.Constants.ALEXA_ALL_SCOPE;
 import static com.txtled.avs.utils.Constants.DEVICE_SERIAL_NUMBER;
 import static com.txtled.avs.utils.Constants.GET_AUTH;
 import static com.txtled.avs.utils.Constants.GET_CODE;
+import static com.txtled.avs.utils.Constants.IP;
 import static com.txtled.avs.utils.Constants.PRODUCT_ID;
 import static com.txtled.avs.utils.Constants.PRODUCT_INSTANCE_ATTRIBUTES;
+import static com.txtled.avs.utils.Constants.RESET_DEVICE;
 import static com.txtled.avs.utils.Constants.SERVICE_TYPE;
 import static com.txtled.avs.utils.Constants.WIFI_NAME;
 import static com.txtled.avs.utils.Constants.WIFI_NAME_OLD;
@@ -120,10 +122,10 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
 
         /******************************************************/
         IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        if (Build.VERSION.SDK_INT == 28) {
-            filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
-        }
-        registerReceiver(mReceiver, filter);
+//        if (Build.VERSION.SDK_INT == 28) {
+//            filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
+//        }
+        //registerReceiver(mReceiver, filter);
 
         locationManager = (LocationManager) activity
                 .getSystemService(Context.LOCATION_SERVICE);
@@ -160,9 +162,9 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                             if (mdnser.ipInfos != null && mdnser.ipInfos.size() != 0) {
                                 for (int i = 0; i < mdnser.ipInfos.size(); i++) {
                                     if (mdnser.ipInfos.get(i).getHostip().equals(ip)){
-                                        view.hidProgress();
-                                        initSocket();
                                         count = 0;
+                                        //view.find();
+                                        initSocket();
                                         return;
                                     }
                                 }
@@ -170,10 +172,16 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                             if (count < 3){
                                 findDevice();
                             }else {
+                                count = 0;
                                 view.timeOut();
                             }
                         }catch (Exception e){
-                            findDevice();
+                            if (count < 3){
+                                findDevice();
+                            }else {
+                                count = 0;
+                                view.timeOut();
+                            }
                         }
 
                     }
@@ -193,11 +201,23 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
             }
             socket = null;
         }
-        readDisposable = null;
-        writeDisposable = null;
-        timerDisposable = null;
-        loginDisposable = null;
-        unregisterReceiver(mReceiver);
+        if (readDisposable != null){
+            readDisposable.dispose();
+            readDisposable = null;
+        }
+        if (writeDisposable != null){
+            writeDisposable.dispose();
+            writeDisposable = null;
+        }
+        if (timerDisposable != null){
+            timerDisposable.dispose();
+            timerDisposable = null;
+        }
+        if (loginDisposable != null){
+            loginDisposable.dispose();
+            loginDisposable = null;
+        }
+        //unregisterReceiver(mReceiver);
         if (mdnser != null){
             mdnser = null;
         }
@@ -226,7 +246,7 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
             }
         }
         socket = new Socket();
-        //connSocket("");
+        connSocket(RESET_DEVICE);
     }
 
     @Override
@@ -253,6 +273,18 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                         sendSocket(sendMsg);
                     }
                 });
+    }
+
+    @Override
+    public void checkState() {
+        WifiManager wifiManager = (WifiManager) activity.getApplicationContext()
+                .getSystemService(WIFI_SERVICE);
+        onWifiChanged(wifiManager.getConnectionInfo());
+    }
+
+    @Override
+    public void resume() {
+        mRequestContext.onResume();
     }
 
     private void sendSocket(String code) {
@@ -292,22 +324,24 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                             readStr = new String(b).trim();
                             Utils.Logger(TAG, "Read:", readStr);
                             if (readStr.contains("reset")) {
-                                readDisposable.dispose();
-                                socket.close();
+                                //readDisposable.dispose();
+                                //socket.close();
                                 //temp.execute();
                                 loginWithAmazon();
                             } else if (readStr.contains("code")) {
-                                String[] code = readStr.split("=");
-                                mCode = code[1];
+
+                                String[] code = readStr.split("code=");
+
+                                mCode = code[1].substring(0,6);
                                 readDisposable.dispose();
                                 socket.close();
                                 view.bindDevice(mCode);
-                                view.hidProgress();
+                                //view.hidProgress();
                             } else {
-                                view.hidProgress();
-                                readDisposable.dispose();
-                                view.showToast(R.string.not_responding);
-                                Utils.Logger(TAG, "Other:", readStr);
+                                //view.hidProgress();
+                                //readDisposable.dispose();
+                                //view.showToast(R.string.not_responding);
+                                //Utils.Logger(TAG, "Other:", readStr);
                             }
                         }
                     } catch (Exception e) {
@@ -348,6 +382,11 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
 
                     @Override
                     public void onNext(DeviceProvisioningInfo deviceProvisioningInfo) {
+                        try {
+                            socket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         mDeviceProvisioningInfo = deviceProvisioningInfo;
 
                         final JSONObject scopeData = new JSONObject();
@@ -433,7 +472,8 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                     });
 
         } else {
-            if (isNetworkOnline()){
+            if (!connectionInfo.getSSID().contains(WIFI_NAME) &&
+                    !connectionInfo.getSSID().contains(WIFI_NAME_OLD)){
                 view.showLoadingView();
             }else {
                 view.showNetDisable();
@@ -464,7 +504,7 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
     private class AuthorizeListenerImpl extends AuthorizeListener {
         @Override
         public void onSuccess(final AuthorizeResult authorizeResult) {
-            view.showLoadingView();
+            //view.showAuthLoadingView();
             final String authorizationCode = authorizeResult.getAuthorizationCode();
             final String redirectUri = authorizeResult.getRedirectURI();
             final String clientId = authorizeResult.getClientId();

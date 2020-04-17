@@ -1,6 +1,7 @@
 package com.txtled.avs.config;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -38,6 +39,7 @@ import static com.txtled.avs.utils.Constants.AVS_WIFI_URL;
 import static com.txtled.avs.utils.Constants.IP;
 import static com.txtled.avs.utils.Constants.IS_AUTH;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
+import static com.txtled.avs.utils.Constants.TYPE;
 
 /**
  * Created by Mr.Quan on 2020/4/16.
@@ -57,6 +59,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
     private AlertDialog dialog;
     private boolean isAuth, isVisible, isOk;
     private String ip;
+    private int type;
 
     @Override
     public void setInject() {
@@ -65,10 +68,18 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void init() {
+        Intent intent = getIntent();
+        type = intent.getIntExtra(TYPE,0);
         tvWifiHint.setVisibility(View.VISIBLE);
         btnWebConfig.setVisibility(View.VISIBLE);
         tvCompany.setVisibility(View.VISIBLE);
         webMain.setVisibility(View.GONE);
+        try {
+            tvCompany.setText(String.format(getString(R.string.designed_by),
+                    getPackageManager().getPackageInfo(getPackageName(),0).versionName));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         tvWifiHint.setTextColor(getResources().getColor(R.color.colorPrimary));
         webMain.clearMatches();
         webMain.clearHistory();
@@ -132,6 +143,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
         });
 
         presenter.init(this);
+        //presenter.checkState();
     }
 
     @Override
@@ -141,7 +153,24 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void onClick(View v) {
-        presenter.checkState();
+//        webMain.setVisibility(View.VISIBLE);
+//        webMain.bringToFront();
+//        tvWifiHint.setVisibility(View.GONE);
+//        btnWebConfig.setVisibility(View.GONE);
+//        tvCompany.setVisibility(View.GONE);
+//        pbWeb.bringToFront();
+//
+//        webMain.loadUrl(AVS_WIFI_URL);
+
+        //presenter.senResetIp();
+        if (ip != null){
+            presenter.senResetIp();
+            //toBindView();
+        }else if (isOk){
+            presenter.senResetIp();
+        }else {
+            presenter.checkState();
+        }
     }
 
     @Override
@@ -167,12 +196,15 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
         tvWifiHint.bringToFront();
         btnWebConfig.bringToFront();
         tvCompany.bringToFront();
+        Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+        startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
         hidSnackBar();
-        showSnackBar(webMain, str, R.string.go, v -> {
-            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-            hidSnackBar();
-        });
+        //hidSnackBar();
+//        showSnackBar(webMain, str, R.string.go, v -> {
+//            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+//            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+//            hidSnackBar();
+//        });
     }
 
     @Override
@@ -235,51 +267,91 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void rightWifi() {
-        isOk = true;
-        if (!isVisible) {
-            hideSnackBar();
-            dialog = AlertUtils.showLoadingDialog(this, R.layout.alert_progress);
-            dialog.show();
-            presenter.findDevice();
-            isOk = false;
-        }
+//        isOk = true;
+//        if (!isVisible) {
+//            hideSnackBar();
+//            dialog = AlertUtils.showLoadingDialog(this, R.layout.alert_progress);
+//            dialog.show();
+//            presenter.findDevice();
+//            isOk = false;
+//        }
+        hideSnackBar();
+        dialog = AlertUtils.showLoadingDialog(this, R.layout.alert_progress);
+        dialog.show();
+        presenter.findDevice();
     }
 
     @Override
     public void showToast(int str) {
-        runOnUiThread(() -> Toast.makeText(this, str, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> {
+            hideSnackBar();
+            if (dialog != null) {
+                dialog.dismiss();
+                dialog = null;
+            }
+            Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override
     public void showWeb() {
+        isOk = true;
         if (dialog != null) {
             dialog.dismiss();
             dialog = null;
         }
-        if (ip != null) {
-            toBindView();
-        } else {
-            webMain.setVisibility(View.VISIBLE);
-            webMain.bringToFront();
-            tvWifiHint.setVisibility(View.GONE);
-            btnWebConfig.setVisibility(View.GONE);
-            tvCompany.setVisibility(View.GONE);
-            pbWeb.bringToFront();
-
-            webMain.loadUrl(AVS_WIFI_URL);
+        if (ip != null){
+            //toBindView();
+            tvWifiHint.setText(R.string.has_configured);
+            btnWebConfig.setText(R.string.next);
+        }else {
+            tvWifiHint.setText(R.string.avs_wifi_hint);
+            btnWebConfig.setText(R.string.setting_avs_wifi_connection);
         }
+
+//        webMain.setVisibility(View.VISIBLE);
+//        webMain.bringToFront();
+//        tvWifiHint.setVisibility(View.GONE);
+//        btnWebConfig.setVisibility(View.GONE);
+//        tvCompany.setVisibility(View.GONE);
+//        pbWeb.bringToFront();
+//
+//        webMain.loadUrl(AVS_WIFI_URL);
+//        if (ip != null && type == 0) {
+//            if (isAuth){
+//                //toBindView();
+//                btnWebConfig.setText(R.string.next);
+//            }else {
+//                btnWebConfig.setText(R.string.setting_avs_wifi_connection);
+//            }
+//        } else {
+//            webMain.setVisibility(View.VISIBLE);
+//            webMain.bringToFront();
+//            tvWifiHint.setVisibility(View.GONE);
+//            btnWebConfig.setVisibility(View.GONE);
+//            tvCompany.setVisibility(View.GONE);
+//            pbWeb.bringToFront();
+//
+//            webMain.loadUrl(AVS_WIFI_URL);
+//        }
     }
 
     @Override
     public void toBindView() {
-        webMain.clearMatches();
-        webMain.clearHistory();
-        webMain.clearCache(true);
-        webMain.clearFormData();
-        webMain.clearSslPreferences();
-        startActivity(new Intent(WifiConfigActivity.this, BindActivity.class)
-                .putExtra(IS_AUTH, isAuth).putExtra(IP, ip));
-        WifiConfigActivity.this.finish();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webMain.clearMatches();
+                webMain.clearHistory();
+                webMain.clearCache(true);
+                webMain.clearFormData();
+                webMain.clearSslPreferences();
+                presenter.destroy();
+                startActivity(new Intent(WifiConfigActivity.this, BindActivity.class)
+                        .putExtra(IS_AUTH, isAuth).putExtra(IP, ip));
+                WifiConfigActivity.this.finish();
+            }
+        });
     }
 
     @Override
@@ -290,6 +362,38 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
     @Override
     public void getIp(String ip) {
         this.ip = ip;
+    }
+
+    @Override
+    public void notFound() {
+        hideSnackBar();
+        if (dialog != null) {
+            dialog.dismiss();
+            dialog = null;
+        }
+        showSnackBar(webMain, R.string.avs_wifi_available, R.string.go, v -> {
+            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+            hidSnackBar();
+        });
+    }
+
+    @Override
+    public void webVisible() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webMain.setVisibility(View.VISIBLE);
+                webMain.bringToFront();
+                tvWifiHint.setVisibility(View.GONE);
+                btnWebConfig.setVisibility(View.GONE);
+                tvCompany.setVisibility(View.GONE);
+                pbWeb.bringToFront();
+
+                webMain.loadUrl(AVS_WIFI_URL);
+            }
+        });
+
     }
 
     @Override
@@ -326,9 +430,9 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     protected void onResume() {
-        isVisible = false;
-        if (isOk) {
-            rightWifi();
+        if (isVisible){
+            isVisible = false;
+            presenter.checkState();
         }
         super.onResume();
     }

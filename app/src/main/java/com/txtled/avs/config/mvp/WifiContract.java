@@ -30,6 +30,10 @@ public interface WifiContract {
         void getAuth(boolean b);
 
         void getIp(String ip);
+
+        void notFound();
+
+        void webVisible();
     }
 
     interface Presenter extends BasePresenter<View>{
@@ -41,5 +45,7 @@ public interface WifiContract {
         void checkState();
 
         void destroy();
+
+        void senResetIp();
     }
 }

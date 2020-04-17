@@ -36,6 +36,8 @@
         android:layout_below="@+id/tv_avs_wifi"
         android:layout_centerInParent="true"
         android:layout_marginBottom="@dimen/dp_12_x"
+        android:layout_marginLeft="@dimen/dp_32_x"
+        android:layout_marginRight="@dimen/dp_32_x"
         android:gravity="center"
         android:text="@string/avs_wifi_hint" />
 
@@ -51,6 +53,23 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="@dimen/dp_32_x"/>
+
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/tv_web_code"
+        style="@style/main_tv"
+        android:textIsSelectable="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:paddingTop="@dimen/dp_8_x"
+        android:paddingBottom="@dimen/dp_8_x"
+        android:paddingLeft="@dimen/dp_16_x"
+        android:paddingRight="@dimen/dp_16_x"
+        android:background="@drawable/tv_code"
+        android:textColor="@color/colorPrimary"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/dp_16_x" />
 
 
 </RelativeLayout>

@@ -2,6 +2,7 @@ package com.txtled.avs.bind;
 
 import android.content.Intent;
 import android.provider.Settings;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -24,12 +25,14 @@ import com.txtled.avs.web.WebViewActivity;
 import butterknife.BindView;
 
 import static com.txtled.avs.utils.Constants.BIND_URL;
+import static com.txtled.avs.utils.Constants.CODE;
 import static com.txtled.avs.utils.Constants.IP;
 import static com.txtled.avs.utils.Constants.IS_AUTH;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_INTERNET_SETTINGS;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_QR;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 import static com.txtled.avs.utils.Constants.RESET_DEVICE;
+import static com.txtled.avs.utils.Constants.TYPE;
 import static com.txtled.avs.utils.Constants.WEB_URL;
 
 /**
@@ -53,6 +56,7 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     private String ip;
     private boolean isAuth,isVisible,isOk;
     private AlertDialog dialog;
+    private String code;
     @Override
     public void setInject() {
         getActivityComponent().inject(this);
@@ -66,17 +70,17 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         ip = intent.getStringExtra(IP);
         isAuth = intent.getBooleanExtra(IS_AUTH, false);
         if (isAuth) {
-            tvBindHint.setVisibility(View.VISIBLE);
             tvBindHint.setText(R.string.bound);
             btnBind.setText(R.string.unbind_device);
         }else {
-            tvBindHint.setVisibility(View.GONE);
+            tvBindHint.setText(R.string.second);
             btnBind.setText(R.string.bind_device);
         }
         btnBind.setOnClickListener(this);
         btnChangeWifi.setOnClickListener(this);
         tvAvsBind.setOnClickListener(this);
         presenter.init(this,ip);
+        //presenter.checkState();
     }
 
     @Override
@@ -87,6 +91,7 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     @Override
     public void showSnack(int str) {
         hidSnackBar();
+        hidProgress();
         showSnackBar(btnChangeWifi, str,
                 R.string.ok, v -> hidSnackBar());
     }
@@ -94,11 +99,13 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     @Override
     public void showNetWorkError(int str) {
         hidSnackBar();
-        showSnackBar(btnChangeWifi, str, R.string.go, v -> {
-            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-            hidSnackBar();
-        });
+        hidProgress();
+//        showSnackBar(btnChangeWifi, str, R.string.go, v -> {
+//            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+//            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+//        });
+        Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+        startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
     }
 
     @Override
@@ -109,25 +116,34 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     @Override
     public void openWifi() {
         hideSnackBar();
-        showSnackBar(btnChangeWifi, R.string.no_conn_wifi, R.string.go, new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-                startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-                hideSnackBar();
-            }
-        });
+        hidProgress();
+//        showSnackBar(btnChangeWifi, R.string.no_conn_wifi, R.string.go, new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+//                startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+//            }
+//        });
+        Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+        startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
     }
 
     @Override
     public void showLoadingView() {
-        isOk = true;
-        if (!isVisible){
+        //isOk = true;
+//        if (!isVisible && !btnBind.isEnabled()){
+//            dialog = AlertUtils.showLoadingDialog(BindActivity.this,R.layout.alert_progress);
+//            dialog.show();
+//            presenter.findDevice();
+//            hidSnackBar();
+//            //isOk = false;
+//        }
+        if (dialog == null){
             dialog = AlertUtils.showLoadingDialog(BindActivity.this,R.layout.alert_progress);
             dialog.show();
-            presenter.findDevice();
-            isOk = false;
         }
+        presenter.findDevice();
+        hidSnackBar();
 
     }
 
@@ -142,15 +158,17 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
             dialog.dismiss();
             dialog = null;
         }
-        setEnabled(true);
     }
 
     @Override
     public void bindDevice(String mCode) {
+        code = mCode;
         runOnUiThread(() -> {
+            tvBindHint.setVisibility(View.GONE);
             setViewVisible(true);
             tvAvsCode.setText(mCode);
             hidProgress();
+
         });
     }
 
@@ -158,26 +176,34 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         rlAvsBind.setVisibility(b ? View.VISIBLE : View.GONE);
         btnChangeWifi.setVisibility(b ? View.GONE : View.VISIBLE);
         btnBind.setVisibility(b ? View.GONE : View.VISIBLE);
-        tvAvsBind.setVisibility(b ? View.GONE : View.VISIBLE);
+        //tvAvsBind.setVisibility(b ? View.GONE : View.VISIBLE);
         if (b){
             rlAvsBind.bringToFront();
         }else {
             btnBind.bringToFront();
             btnChangeWifi.bringToFront();
-            tvAvsBind.bringToFront();
+            //tvAvsBind.bringToFront();
         }
     }
 
     @Override
     public void timeOut() {
-        hideSnackBar();
-        setEnabled(false);
-        showSnackBar(btnChangeWifi, R.string.not_found_try_again, R.string.retry, new View.OnClickListener() {
+        runOnUiThread(new Runnable() {
             @Override
-            public void onClick(View v) {
-                dialog = AlertUtils.showLoadingDialog(BindActivity.this,R.layout.alert_progress);
-                dialog.show();
-                presenter.findDevice();
+            public void run() {
+                hideSnackBar();
+                hidProgress();
+                //setEnabled(false);
+                showSnackBar(btnChangeWifi, R.string.not_found_try_again, R.string.retry, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (dialog == null){
+                            dialog = AlertUtils.showLoadingDialog(BindActivity.this,R.layout.alert_progress);
+                            dialog.show();
+                        }
+                        presenter.findDevice();
+                    }
+                });
             }
         });
     }
@@ -185,22 +211,49 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     @Override
     public void showNetDisable() {
         hideSnackBar();
-        setEnabled(false);
-        showSnackBar(btnChangeWifi, R.string.net_unavailable, R.string.go, new View.OnClickListener() {
+        hidProgress();
+//        setEnabled(false);
+//        showSnackBar(btnChangeWifi, R.string.net_unavailable, R.string.go, new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+//                startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+//            }
+//        });
+        Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+        startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+    }
+
+//    @Override
+//    public void find() {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                hidProgress();
+//                //setEnabled(true);
+//            }
+//        });
+//    }
+
+    @Override
+    public void showAuthLoadingView() {
+        runOnUiThread(new Runnable() {
             @Override
-            public void onClick(View v) {
-                Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-                startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-                hideSnackBar();
+            public void run() {
+                if (dialog == null){
+                    dialog = AlertUtils.showLoadingDialog(BindActivity.this,R.layout.alert_progress);
+                    dialog.show();
+                }
+                hidSnackBar();
             }
         });
     }
 
-    private void setEnabled(boolean b){
-        btnBind.setEnabled(b);
-        btnChangeWifi.setEnabled(b);
-        tvAvsBind.setEnabled(b);
-    }
+//    private void setEnabled(boolean b){
+//        btnBind.setEnabled(b);
+//        btnChangeWifi.setEnabled(b);
+//        tvAvsBind.setEnabled(b);
+//    }
 
     @Override
     protected void onPause() {
@@ -210,10 +263,13 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
 
     @Override
     protected void onResume() {
-        isVisible = false;
-        if (isOk){
-            showLoadingView();
-        }
+
+//        if (isVisible){
+//            presenter.checkState();
+//            //showLoadingView();
+//            isVisible = false;
+//        }
+        presenter.resume();
         super.onResume();
     }
 
@@ -221,15 +277,18 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.btn_bind:
-                presenter.connSocket(RESET_DEVICE);
+                showAuthLoadingView();
+                presenter.checkState();
+                //presenter.connSocket(RESET_DEVICE);
                 break;
             case R.id.btn_change_wifi:
-                startActivity(new Intent(this, WifiConfigActivity.class));
+                startActivity(new Intent(this, WifiConfigActivity.class).putExtra(TYPE,1));
                 this.finish();
                 break;
             case R.id.tv_avs_bind:
                 Intent intent = new Intent(this, WebViewActivity.class);
                 intent.putExtra(WEB_URL, BIND_URL);
+                intent.putExtra(CODE,code);
                 startActivityForResult(intent, REQUEST_CODE_INTERNET_SETTINGS);
                 break;
         }
@@ -258,5 +317,15 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     public void onDestroy() {
         presenter.onDestroy();
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (snackbar != null && snackbar.isShown()){
+            hidSnackBar();
+            return false;
+        }else {
+            return onExitActivity(keyCode, event);
+        }
     }
 }

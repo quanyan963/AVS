@@ -22,6 +22,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.txtled.avs.utils.Constants.AVS_WIFI_URL;
+import static com.txtled.avs.utils.Constants.CODE;
 import static com.txtled.avs.utils.Constants.WEB_URL;
 
 /**
@@ -33,6 +34,8 @@ public class WebViewActivity extends MvpBaseActivity<WebViewPresenter> implement
     WebView webMain;
     @BindView(R.id.pb_web)
     ProgressBar pbWeb;
+    @BindView(R.id.tv_web_code)
+    TextView tvWebCode;
 
     @Override
     public void setInject() {
@@ -44,6 +47,9 @@ public class WebViewActivity extends MvpBaseActivity<WebViewPresenter> implement
         Intent intent = getIntent();
         pbWeb.bringToFront();
         String url = intent.getStringExtra(WEB_URL);
+        String code = intent.getStringExtra(CODE);
+        tvWebCode.setVisibility(View.VISIBLE);
+        tvWebCode.setText(code);
         webMain.clearMatches();
         webMain.clearHistory();
         webMain.clearCache(true);
@@ -86,12 +92,12 @@ public class WebViewActivity extends MvpBaseActivity<WebViewPresenter> implement
                 return true;
             }
         });
-        webMain.setWebChromeClient(new WebChromeClient(){
+        webMain.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
-                if (newProgress == 100){
+                if (newProgress == 100) {
                     pbWeb.setVisibility(View.GONE);
-                }else {
+                } else {
                     pbWeb.setVisibility(View.VISIBLE);
                     pbWeb.setProgress(newProgress);
                 }

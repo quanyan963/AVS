@@ -44,6 +44,7 @@ import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver
 import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
 import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.GET_AUTH;
+import static com.txtled.avs.utils.Constants.RESET_IP;
 import static com.txtled.avs.utils.Constants.SERVICE_TYPE;
 import static com.txtled.avs.utils.Constants.WIFI_NAME;
 import static com.txtled.avs.utils.Constants.WIFI_NAME_OLD;
@@ -66,6 +67,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
     private Disposable writeDisposable;
     private Disposable timerDisposable;
     private Disposable loginDisposable;
+    private int count;
 
     @Inject
     public WifiPresenter(DataManagerModel dataManagerModel) {
@@ -80,7 +82,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         if (Build.VERSION.SDK_INT == 28) {
             filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
         }
-        registerReceiver(mReceiver, filter);
+        //registerReceiver(mReceiver, filter);
 
         locationManager = (LocationManager) activity
                 .getSystemService(Context.LOCATION_SERVICE);
@@ -98,6 +100,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
 
     @Override
     public void findDevice() {
+        count = count + 1;
         mdnser = new Mdnser(activity);
         mdnser.initializeDiscoveryListener();
         addSubscribe(Flowable.create((FlowableOnSubscribe<Mdnser>) e -> {
@@ -121,11 +124,22 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                             if (mdnser.ipInfos != null && mdnser.ipInfos.size() != 0) {
                                 //view.showWeb();
                                 initSocket();
+                                count = 0;
                             } else {
-                                findDevice();
+                                if ( count < 3){
+                                    findDevice();
+                                }else {
+                                    count = 0;
+                                    view.notFound();
+                                }
                             }
                         }catch (Exception e){
-                            findDevice();
+                            if ( count < 3){
+                                findDevice();
+                            }else {
+                                count = 0;
+                                view.notFound();
+                            }
                         }
 
                     }
@@ -152,17 +166,34 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
             }
             socket = null;
         }
-        readDisposable = null;
-        writeDisposable = null;
-        timerDisposable = null;
-        loginDisposable = null;
-        unregisterReceiver(mReceiver);
+        if (readDisposable != null){
+            readDisposable.dispose();
+            readDisposable = null;
+        }
+        if (writeDisposable != null){
+            writeDisposable.dispose();
+            writeDisposable = null;
+        }
+        if (timerDisposable != null){
+            timerDisposable.dispose();
+            timerDisposable = null;
+        }
+        if (loginDisposable != null){
+            loginDisposable.dispose();
+            loginDisposable = null;
+        }
+        //unregisterReceiver(mReceiver);
         if (mdnser != null){
             mdnser = null;
         }
         if (locationManager != null){
             locationManager = null;
         }
+    }
+
+    @Override
+    public void senResetIp() {
+        connSocket(RESET_IP);
     }
 
     private void initSocket() {
@@ -200,7 +231,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                 socket = new Socket();
                 connSocket(sendMsg);
             }
-        }, BackpressureStrategy.LATEST).compose(RxUtil.rxSchedulerHelper())
+        }, BackpressureStrategy.LATEST).subscribeOn(Schedulers.io()).observeOn(Schedulers.io())
                 .subscribeWith(new CommonSubscriber<Socket>(view) {
                     @Override
                     public void onNext(Socket socket) {
@@ -228,13 +259,14 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
 
     private void startTime() {
 
-        timerDisposable = Observable.timer(2, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
+        timerDisposable = Observable.timer(3, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()).subscribe(time -> {
                     if (readStr == null || readStr.isEmpty()) {
                         view.showToast(R.string.not_responding);
                         readDisposable.dispose();
                         writeDisposable.dispose();
                     }else {
+                        readStr = null;
                         view.showWeb();
                     }
                 });
@@ -250,8 +282,8 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                             readStr = new String(b).trim();
                             Utils.Logger(TAG, "Read:", readStr);
                             if (readStr.contains("auth") && readStr.contains("ip")) {
-                                readDisposable.dispose();
-                                socket.close();
+                                //readDisposable.dispose();
+                                //socket.close();
                                 //view.toBindView();
                                 String[] data = readStr.split("auth=");
                                 boolean isAuth;
@@ -267,21 +299,24 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                                 view.getIp(ip);
                                 //view.toBindView();
                             } else if (readStr.contains("auth")) {
-                                readDisposable.dispose();
-                                socket.close();
+                                //readDisposable.dispose();
+                                //socket.close();
                                 view.getAuth(readStr.substring(readStr.length() - 1).equals("1") ? true : false);
                                 //temp.execute();
                             } else if (readStr.contains("ip")) {
                                 String ip = readStr.split("=")[1];
-                                readDisposable.dispose();
-                                socket.close();
+                                //readDisposable.dispose();
+                                //socket.close();
                                 view.getIp(ip);
-                                //view.toBindView();
+                                view.toBindView();
                                 //temp.execute();
-                            } else {
-                                readDisposable.dispose();
-                                view.showToast(R.string.not_responding);
-                                Utils.Logger(TAG, "Other:", readStr);
+                            } else if (readStr.contains(RESET_IP)){
+                                view.webVisible();
+                                //readDisposable.dispose();
+//                                view.showToast(R.string.not_responding);
+//                                Utils.Logger(TAG, "Other:", readStr);
+                            }else {
+
                             }
                         }
                     } catch (Exception e) {

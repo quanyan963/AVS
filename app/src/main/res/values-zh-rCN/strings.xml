@@ -21,7 +21,7 @@
 
     //avs
     <string name="setting_avs_wifi_connection">配置AVS 连接WIFI</string>
-    <string name="avs_wifi_hint">您需要先为AVS配置网络。</string>
+    <string name="avs_wifi_hint">1.请先将WiFi连接至AVS发出的WiFi。您可以通过点击下方按钮前往切换WiFi。</string>
     <string name="avs_config_hint">如果您已配置完成，请连接至已配置好的网络，\n然后刷新此列表。</string>
     <string name="error">错误</string>
     <string name="author_success">认证成功</string>
@@ -82,12 +82,15 @@
     <string name="create_thing_fail">事物创建失败。</string>
     <string name="version_s">App 版本号: %s</string>
     <string name="bind">绑定设备</string>
-    <string name="designed_by">Designed by GREAT POWER</string>
+    <string name="designed_by">Designed by GREAT POWER\n\nApp Version: %s</string>
     <string name="unbind_device">设备换绑</string>
     <string name="change_wifi">变更 WiFi</string>
     <string name="bound">设备已绑定。</string>
     <string name="not_found_try_again">没有发现设备，请重试或切换至正确的WiFi.</string>
     <string name="retry">重试</string>
+    <string name="next">下一步</string>
+    <string name="has_configured">此设备WiFi已配置完毕。请点击下一步。</string>
+    <string name="second">2.将WiFi更改为已在AVS上配置的WiFi。然后点击下方按钮开始绑定。</string>
 
 
 </resources>

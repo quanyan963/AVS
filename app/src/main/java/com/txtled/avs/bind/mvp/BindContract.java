@@ -31,6 +31,10 @@ public interface BindContract {
         void timeOut();
 
         void showNetDisable();
+
+        //void find();
+
+        void showAuthLoadingView();
     }
     interface Presenter extends BasePresenter<View>{
 
@@ -41,5 +45,9 @@ public interface BindContract {
         void onDestroy();
 
         void connSocket(String sendMsg);
+
+        void checkState();
+
+        void resume();
     }
 }
