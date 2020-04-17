@@ -330,6 +330,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                                 readSocket();
                             }
                         }
+
                     }
                 });
     }
