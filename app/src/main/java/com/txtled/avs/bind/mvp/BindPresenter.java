@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.LocationManager;
 import android.net.nsd.NsdManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Build;
+import android.util.Base64;
 
 import com.amazon.identity.auth.device.AuthError;
 import com.amazon.identity.auth.device.api.Listener;
@@ -26,7 +28,6 @@ import com.txtled.avs.R;
 import com.txtled.avs.avs.amazonlogin.CompanionProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.DeviceProvisioningInfo;
 import com.txtled.avs.avs.amazonlogin.ProvisioningClient;
-import com.txtled.avs.avs.mvp.AVSPresenter;
 import com.txtled.avs.base.CommonSubscriber;
 import com.txtled.avs.base.RxPresenter;
 import com.txtled.avs.mDNS.Mdnser;
@@ -39,35 +40,34 @@ import com.txtled.avs.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.reactivestreams.Subscription;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
 import io.reactivex.FlowableOnSubscribe;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 import static android.content.Context.WIFI_SERVICE;
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
 import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.ALEXA_ALL_SCOPE;
 import static com.txtled.avs.utils.Constants.DEVICE_SERIAL_NUMBER;
-import static com.txtled.avs.utils.Constants.GET_AUTH;
 import static com.txtled.avs.utils.Constants.GET_CODE;
-import static com.txtled.avs.utils.Constants.IP;
 import static com.txtled.avs.utils.Constants.PRODUCT_ID;
 import static com.txtled.avs.utils.Constants.PRODUCT_INSTANCE_ATTRIBUTES;
 import static com.txtled.avs.utils.Constants.RESET_DEVICE;
@@ -97,6 +97,8 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
     private AuthorizeListenerImpl authorizeListener;
     private DeviceProvisioningInfo mDeviceProvisioningInfo;
     private int count;
+    private boolean hasResult;
+    boolean hasCanResult,hasConn;
 
     @Inject
     public BindPresenter(DataManagerModel dataManagerModel) {
@@ -141,6 +143,9 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
         }
     }
 
+    /**
+     * 搜索当前网路下的设备
+     */
     @Override
     public void findDevice() {
         count  = count + 1;
@@ -195,9 +200,14 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
         }
         if (socket != null) {
             try {
+                outStr.close();
+                inStr.close();
+                outStr = null;
+                inStr = null;
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                outStr = null;
+                inStr = null;
             }
             socket = null;
         }
@@ -237,12 +247,14 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
             try {
                 readDisposable.dispose();
                 writeDisposable.dispose();
+                inStr.close();
+                outStr.close();
 //                timerDisposable.dispose();
 //                loginDisposable.dispose();
                 socket.close();
                 socket = null;
             } catch (IOException e) {
-                e.printStackTrace();
+                socket = null;
             }
         }
         socket = new Socket();
@@ -261,6 +273,7 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                 }
                 e.onNext(socket);
             } catch (IOException e1) {
+                socket.close();
                 socket = null;
                 socket = new Socket();
                 connSocket(sendMsg);
@@ -287,6 +300,170 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
         mRequestContext.onResume();
     }
 
+    /**
+     * 从亚马逊登录返回后计时
+     */
+    @Override
+    public void startCount() {
+        addSubscribe(Flowable.timer(8,TimeUnit.SECONDS)
+                .compose(RxUtil.rxSchedulerHelper())
+                .subscribeWith(new CommonSubscriber<Long>(view){
+
+                    @Override
+                    public void onNext(Long aLong) {
+                        if (!hasResult){
+                            view.noResult();
+                            mRequestContext.unregisterListener(authorizeListener);
+                            mRequestContext.registerListener(authorizeListener);
+                        }else {
+                            hasResult = false;
+                        }
+                    }
+                }));
+    }
+
+    /**
+     * 自动更改wifi
+     * @param ssId
+     * @param psk
+     */
+    @Override
+    public void changeWifi(String ssId, String psk) {
+
+        WifiManager manager = (WifiManager) activity.getApplicationContext().getSystemService(WIFI_SERVICE);
+
+        addSubscribe(Flowable.create((FlowableOnSubscribe<String>) e -> {
+            List<ScanResult> results = manager.getScanResults();
+            int id = -1;
+            List<WifiConfiguration> mWificonfiguration = manager.getConfiguredNetworks();
+            ScanResult result = null;
+            for (int i = 0; i < results.size(); i++) {
+                if (results.get(i).SSID.equals(ssId)){
+                    hasCanResult = true;
+                    result = results.get(i);
+                    break;
+                }else {
+                    hasCanResult = false;
+                }
+            }
+            for (int i = 0; i < mWificonfiguration.size(); i++) {
+                if (mWificonfiguration.get(i).SSID.replace("\"","").equals(ssId)){
+                    hasConn = true;
+                    id = mWificonfiguration.get(i).networkId;
+                    break;
+                }else {
+                    hasConn = false;
+                }
+            }
+            if (hasCanResult && hasConn){
+                manager.enableNetwork(id,true);
+                e.onNext("success");
+            }else if (!hasCanResult){
+                e.onNext("scanFail");
+            }else if (hasCanResult && !hasConn){
+                manager.addNetwork(createWifiInfo(result.SSID,deCode(psk),
+                        getCipherType(result.capabilities)));
+                //manager.enableNetwork(netId, true);
+                e.onNext("success");
+            }
+        },BackpressureStrategy.BUFFER)
+                .compose(RxUtil.rxSchedulerHelper())
+                .doOnSubscribe(subscription -> manager.startScan())
+                .subscribeWith(new CommonSubscriber<String>(view){
+
+                    @Override
+                    public void onNext(String s) {
+                        if (s.equals("success")){
+                            view.showToast(activity.getString(R.string.auto_change)+ssId);
+                        }else {
+                            //view.showToast("");
+                        }
+                    }
+                }));
+    }
+
+    /**
+     * 判断wifi的加密形式
+     * @param capabilities
+     * @return
+     */
+    private int getCipherType(String capabilities){
+        if (capabilities.contains("WEB")) {
+            return 2;
+        } else if (capabilities.contains("PSK")) {
+            return 3;
+        } else if (capabilities.contains("WPS")) {
+            return 1;
+        } else {
+            return 1;
+        }
+    }
+
+    /**
+     * 配置wifi参数
+     * @param SSID wifi名称
+     * @param Password wifi密码
+     * @param Type 加密类型
+     * @return WifiConfiguration
+     */
+    private WifiConfiguration createWifiInfo(String SSID, String Password, int Type) {
+        WifiConfiguration configuration = new WifiConfiguration();
+        configuration.allowedAuthAlgorithms.clear();
+        configuration.allowedGroupCiphers.clear();
+        configuration.allowedKeyManagement.clear();
+        configuration.allowedPairwiseCiphers.clear();
+        configuration.allowedProtocols.clear();
+        configuration.SSID = "\"" + SSID + "\"";
+
+        switch (Type) {
+            case 1://不加密
+                configuration.wepKeys[0] = "";
+                configuration.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+                configuration.wepTxKeyIndex = 0;
+                configuration.priority= 20000;
+                break;
+            case 2://wep加密
+                configuration.hiddenSSID = true;
+                configuration.wepKeys[0] = "\"" + Password +"\"";
+                configuration.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
+                configuration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                configuration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+                configuration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+                configuration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+                configuration.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+
+                break;
+            case 3: //wpa加密
+
+                configuration.preSharedKey = "\"" + Password + "\"";
+                configuration.hiddenSSID = true;
+                configuration.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
+                configuration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+                configuration.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                configuration.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+                configuration.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+                configuration.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+                configuration.status = WifiConfiguration.Status.ENABLED;
+                break;
+        }
+        return  configuration;
+    }
+
+    /**
+     * 解码
+     * @param psk
+     * @return
+     */
+    private String deCode(String psk) {
+        //解码
+        byte[] code = Base64.decode(psk,Base64.DEFAULT);
+        for (int i = code.length - 1; i >= 0; i--) {
+            code[i] = (byte) (code[i] ^ 0xa5);
+        }
+
+        return new String(code);
+    }
+
     private void sendSocket(String code) {
         writeDisposable = Observable.just(socket).subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(socket -> {
@@ -294,9 +471,11 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                         outStr.write(code.getBytes());
                     } catch (Exception e) {
                         if (!writeDisposable.isDisposed()) {
-                            socket = new Socket();
-                            socket.connect(new InetSocketAddress(address, 9000), 3000);
-                            sendSocket(code);
+                            outStr.close();
+                            this.socket.close();
+                            this.socket = new Socket();
+//                            socket.connect(new InetSocketAddress(address, 9000), 3000);
+//                            sendSocket(code);
                         }
                     }
                 });
@@ -329,7 +508,6 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                                 //temp.execute();
                                 loginWithAmazon();
                             } else if (readStr.contains("code")) {
-
                                 String[] code = readStr.split("code=");
 
                                 mCode = code[1].substring(0,6);
@@ -347,10 +525,12 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
                     } catch (Exception e) {
                         if (!readDisposable.isDisposed()){
                             readDisposable.dispose();
+                            inStr.close();
+                            socket.close();
                             socket = null;
                             socket = new Socket();
-                            socket.connect(new InetSocketAddress(address, 9000), 3000);
-                            readSocket();
+//                            socket.connect(new InetSocketAddress(address, 9000), 3000);
+//                            readSocket();
                         }
                     }
                 });
@@ -360,6 +540,7 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
      * 登陆亚马逊
      */
     private void loginWithAmazon() {
+        view.unBind();
         addSubscribe(Flowable.create((FlowableOnSubscribe<DeviceProvisioningInfo>) e -> {
             try {
                 //long startTime = System.currentTimeMillis();
@@ -413,6 +594,7 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
 
     }
 
+    //弃用
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -501,9 +683,13 @@ public class BindPresenter extends RxPresenter<BindContract.View> implements Bin
         return wifiManager.isWifiEnabled();
     }
 
+    /**
+     * 亚马逊登录接口
+     */
     private class AuthorizeListenerImpl extends AuthorizeListener {
         @Override
         public void onSuccess(final AuthorizeResult authorizeResult) {
+            hasResult = true;
             //view.showAuthLoadingView();
             final String authorizationCode = authorizeResult.getAuthorizationCode();
             final String redirectUri = authorizeResult.getRedirectURI();

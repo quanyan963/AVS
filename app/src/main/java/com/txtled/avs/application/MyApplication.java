@@ -12,6 +12,8 @@ import com.txtled.avs.di.module.AppModule;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.leo.magic.screen.MagicScreenAdapter;
+
 import static com.txtled.avs.utils.Constants.IDENTITY_POOL_ID;
 
 /**
@@ -40,6 +42,8 @@ public class MyApplication extends Application {
                 IDENTITY_POOL_ID, // 身份池 ID
                 MY_REGION // 区域
         );
+
+        MagicScreenAdapter.initDesignWidthInDp(360);
     }
 
     public static CognitoCachingCredentialsProvider getCredentialsProvider(){

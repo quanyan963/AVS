@@ -28,17 +28,20 @@ import static com.txtled.avs.utils.Constants.BIND_URL;
 import static com.txtled.avs.utils.Constants.CODE;
 import static com.txtled.avs.utils.Constants.IP;
 import static com.txtled.avs.utils.Constants.IS_AUTH;
+import static com.txtled.avs.utils.Constants.PSK;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_INTERNET_SETTINGS;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_QR;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
 import static com.txtled.avs.utils.Constants.RESET_DEVICE;
+import static com.txtled.avs.utils.Constants.SSID;
 import static com.txtled.avs.utils.Constants.TYPE;
 import static com.txtled.avs.utils.Constants.WEB_URL;
 
 /**
  * Created by Mr.Quan on 2020/4/16.
  */
-public class BindActivity extends MvpBaseActivity<BindPresenter> implements BindContract.View, View.OnClickListener {
+public class BindActivity extends MvpBaseActivity<BindPresenter> implements BindContract.View,
+        View.OnClickListener {
     @BindView(R.id.btn_bind)
     MaterialButton btnBind;
     @BindView(R.id.btn_change_wifi)
@@ -53,8 +56,8 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     RelativeLayout rlAvsBind;
     @BindView(R.id.tv_bind_hint)
     TextView tvBindHint;
-    private String ip;
-    private boolean isAuth,isVisible,isOk;
+    private String ip,ssId,psk;
+    private boolean isAuth,isVisible,isOk,hasResult;
     private AlertDialog dialog;
     private String code;
     @Override
@@ -65,9 +68,12 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     @Override
     public void init() {
         initToolbar();
+        setNavigationIcon(true);
         tvTitle.setText(R.string.bind);
         Intent intent = getIntent();
         ip = intent.getStringExtra(IP);
+        ssId = intent.getStringExtra(SSID);
+        psk = intent.getStringExtra(PSK);
         isAuth = intent.getBooleanExtra(IS_AUTH, false);
         if (isAuth) {
             tvBindHint.setText(R.string.bound);
@@ -80,6 +86,8 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         btnChangeWifi.setOnClickListener(this);
         tvAvsBind.setOnClickListener(this);
         presenter.init(this,ip);
+
+        presenter.changeWifi(ssId,psk);
         //presenter.checkState();
     }
 
@@ -88,6 +96,10 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         return R.layout.activity_bind;
     }
 
+    /**
+     * 显示底部弹框
+     * @param str 要显示的内容
+     */
     @Override
     public void showSnack(int str) {
         hidSnackBar();
@@ -113,6 +125,9 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         hideSnackBar();
     }
 
+    /**
+     * 跳转至wifi设置界面
+     */
     @Override
     public void openWifi() {
         hideSnackBar();
@@ -149,7 +164,18 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
 
     @Override
     public void showToast(int str) {
-        runOnUiThread(() -> Toast.makeText(this, str, Toast.LENGTH_SHORT).show());
+        runOnUiThread(() -> {
+            hidSnackBar();
+            hidProgress();
+            Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    @Override
+    public void showToast(String str) {
+        hidSnackBar();
+        hidProgress();
+        Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -160,6 +186,10 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         }
     }
 
+    /**
+     * 显示验证码界面
+     * @param mCode
+     */
     @Override
     public void bindDevice(String mCode) {
         code = mCode;
@@ -249,6 +279,18 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
         });
     }
 
+    @Override
+    public void noResult() {
+        hidProgress();
+        hidSnackBar();
+        Toast.makeText(this,R.string.request_timeout,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void unBind() {
+        runOnUiThread(() -> tvBindHint.setText(R.string.second));
+    }
+
 //    private void setEnabled(boolean b){
 //        btnBind.setEnabled(b);
 //        btnChangeWifi.setEnabled(b);
@@ -270,9 +312,17 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
 //            isVisible = false;
 //        }
         presenter.resume();
+        if (isVisible = true && dialog != null && dialog.isShowing()){
+            isVisible = false;
+            presenter.startCount();
+        }
         super.onResume();
     }
 
+    /**
+     * 所有按钮点击事件
+     * @param v 控件
+     */
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -320,12 +370,18 @@ public class BindActivity extends MvpBaseActivity<BindPresenter> implements Bind
     }
 
     @Override
+    public void onBackPressed() {
+        startActivity(new Intent(this,WifiConfigActivity.class));
+        this.finish();
+        super.onBackPressed();
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (snackbar != null && snackbar.isShown()){
             hidSnackBar();
             return false;
-        }else {
-            return onExitActivity(keyCode, event);
         }
+        return super.onKeyDown(keyCode, event);
     }
 }

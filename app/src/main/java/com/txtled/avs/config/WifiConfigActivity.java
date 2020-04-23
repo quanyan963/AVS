@@ -38,7 +38,9 @@ import butterknife.ButterKnife;
 import static com.txtled.avs.utils.Constants.AVS_WIFI_URL;
 import static com.txtled.avs.utils.Constants.IP;
 import static com.txtled.avs.utils.Constants.IS_AUTH;
+import static com.txtled.avs.utils.Constants.PSK;
 import static com.txtled.avs.utils.Constants.REQUEST_CODE_WIFI_SETTINGS;
+import static com.txtled.avs.utils.Constants.SSID;
 import static com.txtled.avs.utils.Constants.TYPE;
 
 /**
@@ -58,7 +60,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
     TextView tvCompany;
     private AlertDialog dialog;
     private boolean isAuth, isVisible, isOk;
-    private String ip;
+    private String ip,ssId,psk;
     private int type;
 
     @Override
@@ -177,6 +179,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void showSnack(int str) {
+        isVisible = false;
         tvWifiHint.setVisibility(View.VISIBLE);
         btnWebConfig.setVisibility(View.VISIBLE);
         tvCompany.setVisibility(View.VISIBLE);
@@ -198,9 +201,12 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
         tvWifiHint.bringToFront();
         btnWebConfig.bringToFront();
         tvCompany.bringToFront();
-        Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-        startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
-        hidSnackBar();
+        if (!isVisible){
+            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            startActivityForResult(locationIntent, REQUEST_CODE_WIFI_SETTINGS);
+            hidSnackBar();
+        }
+        isVisible = false;
         //hidSnackBar();
 //        showSnackBar(webMain, str, R.string.go, v -> {
 //            Intent locationIntent = new Intent(Settings.ACTION_WIFI_SETTINGS);
@@ -211,6 +217,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void showPermissionHint() {
+        isVisible = false;
         tvWifiHint.setVisibility(View.VISIBLE);
         btnWebConfig.setVisibility(View.VISIBLE);
         tvCompany.setVisibility(View.VISIBLE);
@@ -277,6 +284,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 //            presenter.findDevice();
 //            isOk = false;
 //        }
+        isVisible = false;
         hideSnackBar();
         dialog = AlertUtils.showLoadingDialog(this, R.layout.alert_progress);
         dialog.show();
@@ -339,21 +347,21 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
 
     @Override
     public void toBindView() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                hidDialog();
-                hideSnackBar();
-                webMain.clearMatches();
-                webMain.clearHistory();
-                webMain.clearCache(true);
-                webMain.clearFormData();
-                webMain.clearSslPreferences();
-                presenter.destroy();
-                startActivity(new Intent(WifiConfigActivity.this, BindActivity.class)
-                        .putExtra(IS_AUTH, isAuth).putExtra(IP, ip));
-                WifiConfigActivity.this.finish();
-            }
+        runOnUiThread(() -> {
+            hidDialog();
+            hideSnackBar();
+            webMain.clearMatches();
+            webMain.clearHistory();
+            webMain.clearCache(true);
+            webMain.clearFormData();
+            webMain.clearSslPreferences();
+            presenter.destroy();
+            startActivity(new Intent(WifiConfigActivity.this, BindActivity.class)
+                    .putExtra(IS_AUTH, isAuth)
+                    .putExtra(IP, ip)
+                    .putExtra(SSID,ssId)
+                    .putExtra(PSK,psk));
+            WifiConfigActivity.this.finish();
         });
     }
 
@@ -406,6 +414,16 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
     }
 
     @Override
+    public void getSsId(String ssId) {
+        this.ssId = ssId;
+    }
+
+    @Override
+    public void getPsk(String psk) {
+        this.psk = psk;
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (webMain.getVisibility() == View.VISIBLE) {
             webMain.setVisibility(View.GONE);
@@ -440,7 +458,7 @@ public class WifiConfigActivity extends MvpBaseActivity<WifiPresenter> implement
     @Override
     protected void onResume() {
         if (isVisible){
-            isVisible = false;
+            //isVisible = false;
             presenter.checkState();
         }
         super.onResume();

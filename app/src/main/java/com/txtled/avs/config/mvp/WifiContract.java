@@ -34,6 +34,10 @@ public interface WifiContract {
         void notFound();
 
         void webVisible();
+
+        void getSsId(String ssId);
+
+        void getPsk(String psk);
     }
 
     interface Presenter extends BasePresenter<View>{

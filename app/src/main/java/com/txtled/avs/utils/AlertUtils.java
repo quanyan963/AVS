@@ -12,6 +12,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
@@ -245,6 +248,11 @@ public class AlertUtils {
         if (!((Activity) context).isFinishing()) {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             View view = layoutInflater.inflate(viewId, null);
+            ImageView progress = view.findViewById(R.id.clp_loading);
+            Animation animation = AnimationUtils.loadAnimation(context,R.anim.loading_anim);
+            LinearInterpolator interpolator = new LinearInterpolator();
+            animation.setInterpolator(interpolator);
+            progress.startAnimation(animation);
             AlertDialog dialog = new AlertDialog.Builder(context, R.style.TransparentDialog)
                     .setView(view)
                     .create();

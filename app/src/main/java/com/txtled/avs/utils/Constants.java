@@ -30,6 +30,10 @@ public class Constants {
     public static final String GET_AUTH = "get_auth_state";
     public static final String IS_AUTH = "is_auth";
     public static final String RESET_IP = "disconn_wifi";
+    public static final String GET_SSID = "get_ssid";
+    public static final String GET_PSK = "get_psk";
+    public static final String SSID = "ssId";
+    public static final String PSK = "psk";
     public static final String CODE = "code";
     public static final String TYPE = "type";
     public static final String IP = "ip";

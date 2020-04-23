@@ -85,12 +85,14 @@
     <string name="designed_by">Designed by GREAT POWER\n\nApp Version: %s</string>
     <string name="unbind_device">设备换绑</string>
     <string name="change_wifi">变更 WiFi</string>
-    <string name="bound">设备已绑定。</string>
+    <string name="bound">设备已绑定。如果您想换绑，请先将WiFi切换至已为AVS配置好的WiFi.</string>
     <string name="not_found_try_again">没有发现设备，请重试或切换至正确的WiFi.</string>
     <string name="retry">重试</string>
     <string name="next">下一步</string>
     <string name="has_configured">此设备WiFi已配置完毕。请点击下一步。</string>
     <string name="second">2.将WiFi更改为已在AVS上配置的WiFi。然后点击下方按钮开始绑定。</string>
+    <string name="request_timeout">Network request timeout</string>
+    <string name="auto_change">WiFi已自动切换至</string>
 
 
 </resources>

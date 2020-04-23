@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:textColor="@color/colorPrimary"
-            app:backgroundTint="@color/colorPrimaryDark"
+            app:backgroundTint="@color/colorAccent"
             android:textSize="18sp"
             android:text="@string/bind_device"
             android:layout_below="@+id/tv_avs_code_hint"

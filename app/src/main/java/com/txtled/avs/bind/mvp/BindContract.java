@@ -24,6 +24,8 @@ public interface BindContract {
 
         void showToast(int str);
 
+        void showToast(String str);
+
         void hidProgress();
 
         void bindDevice(String mCode);
@@ -35,6 +37,10 @@ public interface BindContract {
         //void find();
 
         void showAuthLoadingView();
+
+        void noResult();
+
+        void unBind();
     }
     interface Presenter extends BasePresenter<View>{
 
@@ -49,5 +55,9 @@ public interface BindContract {
         void checkState();
 
         void resume();
+
+        void startCount();
+
+        void changeWifi(String ssId, String psk);
     }
 }

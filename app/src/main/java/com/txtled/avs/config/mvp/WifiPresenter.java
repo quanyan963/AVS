@@ -19,7 +19,6 @@ import com.txtled.avs.mDNS.Mdnser;
 import com.txtled.avs.model.DataManagerModel;
 import com.txtled.avs.model.operate.OperateHelper;
 import com.txtled.avs.utils.Constants;
-import com.txtled.avs.utils.RxUtil;
 import com.txtled.avs.utils.Utils;
 
 import java.io.IOException;
@@ -40,10 +39,10 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import static android.content.Context.WIFI_SERVICE;
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.registerReceiver;
-import static com.inuker.bluetooth.library.utils.BluetoothUtils.unregisterReceiver;
 import static com.txtled.avs.base.BaseFragment.TAG;
 import static com.txtled.avs.utils.Constants.GET_AUTH;
+import static com.txtled.avs.utils.Constants.GET_PSK;
+import static com.txtled.avs.utils.Constants.GET_SSID;
 import static com.txtled.avs.utils.Constants.RESET_IP;
 import static com.txtled.avs.utils.Constants.SERVICE_TYPE;
 import static com.txtled.avs.utils.Constants.WIFI_NAME;
@@ -99,6 +98,9 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         }
     }
 
+    /**
+     * 搜索设备
+     */
     @Override
     public void findDevice() {
         count = count + 1;
@@ -106,13 +108,13 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         mdnser.initializeDiscoveryListener();
         addSubscribe(Flowable.create((FlowableOnSubscribe<Mdnser>) e -> {
 
-            try{
+            try {
                 mdnser.initializeDiscoveryListener();
                 mdnser.mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD,
                         mdnser.mDiscoveryListener);
                 Thread.sleep(1500);
                 e.onNext(mdnser);
-            }catch (Exception e1){
+            } catch (Exception e1) {
                 findDevice();
             }
         }, BackpressureStrategy.BUFFER).subscribeOn(Schedulers.io()).observeOn(Schedulers.io())
@@ -127,17 +129,17 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                                 initSocket();
                                 count = 0;
                             } else {
-                                if ( count < 3){
+                                if (count < 3) {
                                     findDevice();
-                                }else {
+                                } else {
                                     count = 0;
                                     view.notFound();
                                 }
                             }
-                        }catch (Exception e){
-                            if ( count < 3){
+                        } catch (Exception e) {
+                            if (count < 3) {
                                 findDevice();
-                            }else {
+                            } else {
                                 count = 0;
                                 view.notFound();
                             }
@@ -147,6 +149,9 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                 }));
     }
 
+    /**
+     * 检查wifi状态
+     */
     @Override
     public void checkState() {
         WifiManager wifiManager = (WifiManager) activity.getApplicationContext()
@@ -154,6 +159,9 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         onWifiChanged(wifiManager.getConnectionInfo());
     }
 
+    /**
+     * 防oom
+     */
     @Override
     public void destroy() {
         if (activity != null) {
@@ -161,42 +169,54 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         }
         if (socket != null) {
             try {
+                inStr.close();
+                outStr.close();
+                inStr = null;
+                outStr = null;
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                inStr = null;
+                outStr = null;
+                //e.printStackTrace();
             }
             socket = null;
         }
-        if (readDisposable != null){
+        if (readDisposable != null) {
             readDisposable.dispose();
             readDisposable = null;
         }
-        if (writeDisposable != null){
+        if (writeDisposable != null) {
             writeDisposable.dispose();
             writeDisposable = null;
         }
-        if (timerDisposable != null){
+        if (timerDisposable != null) {
             timerDisposable.dispose();
             timerDisposable = null;
         }
-        if (loginDisposable != null){
+        if (loginDisposable != null) {
             loginDisposable.dispose();
             loginDisposable = null;
         }
         //unregisterReceiver(mReceiver);
-        if (mdnser != null){
+        if (mdnser != null) {
             mdnser = null;
         }
-        if (locationManager != null){
+        if (locationManager != null) {
             locationManager = null;
         }
     }
 
+    /**
+     * 发送重置ip指令
+     */
     @Override
     public void senResetIp() {
         connSocket(RESET_IP);
     }
 
+    /**
+     * 初始化socket
+     */
     private void initSocket() {
         address = mdnser.ipInfos.get(0).getHostip();
         final String url = "http://" + address;
@@ -220,14 +240,22 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         connSocket(GET_AUTH);
     }
 
+    /**
+     * 连接socket并发送数据
+     *
+     * @param sendMsg 要发送的数据
+     */
     private void connSocket(String sendMsg) {
         loginDisposable = Flowable.create((FlowableOnSubscribe<Socket>) e -> {
             try {
-                socket.connect(new InetSocketAddress(address, 9000), 2000);
-                inStr = socket.getInputStream();
-                outStr = socket.getOutputStream();
+                if (!socket.isConnected()) {
+                    socket.connect(new InetSocketAddress(address, 9000), 2000);
+                    inStr = socket.getInputStream();
+                    outStr = socket.getOutputStream();
+                }
                 e.onNext(socket);
             } catch (IOException e1) {
+                socket.close();
                 socket = null;
                 socket = new Socket();
                 connSocket(sendMsg);
@@ -243,6 +271,11 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                 });
     }
 
+    /**
+     * socket发送数据
+     *
+     * @param code 内容
+     */
     private void sendSocket(String code) {
         writeDisposable = Observable.just(socket).subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(socket -> {
@@ -250,14 +283,20 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                         outStr.write(code.getBytes());
                     } catch (Exception e) {
                         if (!writeDisposable.isDisposed()) {
+                            writeDisposable.dispose();
+                            outStr.close();
+                            socket.close();
                             socket = new Socket();
-                            socket.connect(new InetSocketAddress(address, 9000), 3000);
+                            //socket.connect(new InetSocketAddress(address, 9000), 3000);
                             sendSocket(code);
                         }
                     }
                 });
     }
 
+    /**
+     * 发送数据后计时，没收到数据则提示
+     */
     private void startTime() {
 
         timerDisposable = Observable.timer(3, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
@@ -266,14 +305,18 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                         view.showToast(R.string.not_responding);
                         //readDisposable.dispose();
                         //writeDisposable.dispose();
-                    }else {
-                        if (!readStr.contains(RESET_IP))
+                    } else {
+                        if (!readStr.contains(RESET_IP) && !readStr.contains(GET_SSID) &&
+                                !readStr.contains(GET_PSK))
                             view.showWeb();
                         readStr = null;
                     }
                 });
     }
 
+    /**
+     * 读客户端（AVS）发来的消息
+     */
     private void readSocket() {
         readDisposable = Observable.interval(1, TimeUnit.SECONDS).subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io()).subscribe(time -> {
@@ -284,6 +327,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                             readStr = new String(b).trim();
                             Utils.Logger(TAG, "Read:", readStr);
                             if (readStr.contains("auth") && readStr.contains("ip")) {
+                                //有时一条数据里有两个信息
                                 //readDisposable.dispose();
                                 //socket.close();
                                 //view.toBindView();
@@ -307,31 +351,44 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                                 //temp.execute();
                             } else if (readStr.contains("ip")) {
                                 String ip = readStr.split("=")[1];
-                                readDisposable.dispose();
-                                socket.close();
                                 view.getIp(ip);
-                                if (isReset) {
-                                    view.toBindView();
-                                }
+                                if (isReset)
+                                    sendSocket(GET_SSID);
                                 //temp.execute();
-                            } else if (readStr.contains(RESET_IP)){
+                            } else if (readStr.contains(RESET_IP)) {
                                 isReset = true;
                                 view.webVisible();
                                 //readDisposable.dispose();
 //                                view.showToast(R.string.not_responding);
 //                                Utils.Logger(TAG, "Other:", readStr);
-                            }else {
+                            } else if (readStr.contains(GET_SSID)) {
+                                String ssid = readStr.split("=")[1];
+                                view.getSsId(ssid);
+                                sendSocket(GET_PSK);
+                            } else if (readStr.contains(GET_PSK)) {
+                                String psk = readStr.split("=")[1];
+                                readDisposable.dispose();
+                                socket.close();
+                                view.getPsk(psk);
+                                if (isReset) {
+                                    view.toBindView();
+                                }
+                            } else {
 
                             }
                         }
                     } catch (Exception e) {
-                        if (readDisposable != null){
+                        if (readDisposable != null) {
                             if (!readDisposable.isDisposed()) {
                                 readDisposable.dispose();
+                                inStr.close();
+                                socket.close();
                                 socket = null;
                                 socket = new Socket();
-                                socket.connect(new InetSocketAddress(address, 9000), 3000);
-                                readSocket();
+                                //socket.connect(new InetSocketAddress(address, 9000), 3000);
+//                                if (socket.isConnected()){
+//                                    readSocket();
+//                                }
                             }
                         }
 
@@ -339,6 +396,7 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
                 });
     }
 
+    //目前弃用
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -360,6 +418,11 @@ public class WifiPresenter extends RxPresenter<WifiContract.View> implements Wif
         }
     };
 
+    /**
+     * 检查wifi状态 是否是GP_A211_****的网络
+     *
+     * @param connectionInfo wifi信息
+     */
     private void onWifiChanged(WifiInfo connectionInfo) {
         boolean disconnected = connectionInfo == null
                 || connectionInfo.getNetworkId() == -1

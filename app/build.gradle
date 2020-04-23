@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'cn.leo.plugin.magic'
 //apply plugin: 'org.greenrobot.greendao'
 
 repositories {
@@ -23,7 +24,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
-        versionName "1.1.0"
+        versionName "1.1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
@@ -132,6 +133,9 @@ dependencies {
 
     //guide
     implementation 'com.github.huburt-Hu:NewbieGuide:v2.4.0'
+
+    //屏幕适配方案
+    implementation 'com.github.jarryleo:MagicScreenAdapter:v1.5'
 //    // Mobile Client for initializing the SDK
 //    implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.7.+@aar') { transitive = true }
 //

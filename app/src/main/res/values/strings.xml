@@ -85,12 +85,14 @@
     <string name="designed_by">Designed by GREAT POWER\n\nApp Version: %s</string>
     <string name="unbind_device">Change Binding</string>
     <string name="change_wifi">Change WiFi</string>
-    <string name="bound">This device is bound.</string>
+    <string name="bound">This device is bound.\nIf you want to change binding,\nplease change wifi to the wifi configured for the AVS at first.</string>
     <string name="not_found_try_again">Device not found,please try again or change to right WiFi.</string>
     <string name="retry">Retry</string>
     <string name="next">Next</string>
     <string name="has_configured">This device is already configured WiFi.Please click button to go next.</string>
     <string name="second">2.Change WiFi to witch you have configured on AVS.Then click the button below to start binding.</string>
+    <string name="request_timeout">Network request timeout</string>
+    <string name="auto_change">Wifi has been automatically switched to</string>
 
 
 </resources>
